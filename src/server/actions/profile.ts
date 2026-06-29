@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { demoBlock } from "@/lib/demo";
 import { updateProfile as updateProfileQuery, type SocialLink } from "@/server/queries";
 import { SUPPORTED_PLATFORMS } from "@/lib/social-icons";
 
@@ -43,6 +44,8 @@ const profileSchema = z.object({
 });
 
 export async function updateProfile(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await getSession())) return { success: false, error: "Unauthorized" };
 
   const parsed = profileSchema.safeParse({

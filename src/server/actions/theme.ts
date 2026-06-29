@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { demoBlock } from "@/lib/demo";
 import {
   setActiveTheme,
   updateTheme,
@@ -26,6 +27,8 @@ const customSchema = z.object({
 });
 
 export async function activateTheme(id: number): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await getSession())) return { success: false, error: "Unauthorized" };
   if (typeof id !== "number" || Number.isNaN(id)) {
     return { success: false, error: "Invalid theme id" };
@@ -37,6 +40,8 @@ export async function activateTheme(id: number): Promise<ActionResult> {
 }
 
 export async function customizeActiveTheme(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await getSession())) return { success: false, error: "Unauthorized" };
 
   const parsed = customSchema.safeParse({

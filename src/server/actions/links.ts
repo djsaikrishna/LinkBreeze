@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { demoBlock } from "@/lib/demo";
 import {
   createLink as createLinkQuery,
   updateLink as updateLinkQuery,
@@ -37,6 +38,8 @@ const linkSchema = z.object({
 });
 
 export async function createLink(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await requireAuth())) return { success: false, error: "Unauthorized" };
 
   const parsed = linkSchema.safeParse({
@@ -71,6 +74,8 @@ export async function createLink(formData: FormData): Promise<ActionResult> {
 }
 
 export async function updateLink(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await requireAuth())) return { success: false, error: "Unauthorized" };
 
   const parsed = linkSchema.safeParse({
@@ -109,6 +114,8 @@ export async function updateLink(formData: FormData): Promise<ActionResult> {
 }
 
 export async function deleteLink(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await requireAuth())) return { success: false, error: "Unauthorized" };
 
   const idStr = formData.get("id");
@@ -123,6 +130,8 @@ export async function deleteLink(formData: FormData): Promise<ActionResult> {
 }
 
 export async function toggleLink(id: number): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await requireAuth())) return { success: false, error: "Unauthorized" };
 
   const all = await getAllLinks();
@@ -136,6 +145,8 @@ export async function toggleLink(id: number): Promise<ActionResult> {
 }
 
 export async function reorderLinks(orderedIds: number[]): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await requireAuth())) return { success: false, error: "Unauthorized" };
 
   if (!Array.isArray(orderedIds) || orderedIds.some((n) => typeof n !== "number")) {

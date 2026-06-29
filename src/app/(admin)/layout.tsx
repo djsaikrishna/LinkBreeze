@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { getSession } from "@/lib/auth";
+import { isDemoMode } from "@/lib/demo";
 import { logout } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { AuroraBackground } from "@/components/aurora/AuroraBackground";
@@ -99,7 +100,17 @@ export default async function AdminLayout({
             </form>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            {isDemoMode && (
+              <div className="mb-4 rounded-lg border border-violet/30 bg-violet/10 px-4 py-3 text-sm text-lavender">
+                <strong>Read-only demo.</strong> Deploy your own instance to make changes.{" "}
+                <a href="https://github.com/Manak-hash/LinkBreeze" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
+                  View on GitHub →
+                </a>
+              </div>
+            )}
+            {children}
+          </main>
           <MobileTabBar />
         </div>
       </div>

@@ -98,6 +98,9 @@ export async function setup(formData: FormData): Promise<ActionResult> {
  * Change the password of the currently authenticated user.
  */
 export async function changePassword(formData: FormData): Promise<ActionResult> {
+  const { demoBlock } = await import("@/lib/demo");
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   const session = await getSession();
   if (!session) {
     return { success: false, error: "Not authenticated" };

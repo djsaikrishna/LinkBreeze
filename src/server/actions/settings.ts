@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { demoBlock } from "@/lib/demo";
 import { updateSetting as updateSettingQuery, getSettings } from "@/server/queries";
 
 export type ActionResult = { success: true } | { success: false; error: string };
@@ -20,6 +21,8 @@ const settingsSchema = z.object({
 });
 
 export async function updateSettings(formData: FormData): Promise<ActionResult> {
+  const demo = demoBlock();
+  if (demo) return { success: false, error: demo };
   if (!(await getSession())) return { success: false, error: "Unauthorized" };
 
   const parsed = settingsSchema.safeParse({

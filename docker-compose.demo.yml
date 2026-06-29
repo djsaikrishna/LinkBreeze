@@ -1,0 +1,12 @@
+services:
+  linkbreeze-demo:
+    build: .
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./data-demo:/app/data
+    environment:
+      - DATABASE_PATH=/app/data/linkbreeze.db
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DEMO_MODE=true
+    restart: unless-stopped
