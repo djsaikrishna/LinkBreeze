@@ -3,11 +3,10 @@
  * Run with: DEMO_MODE=true npx tsx src/scripts/seed-demo.ts
  * Populates a fresh database with demo data for the read-only demo instance.
  */
-import "server-only";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import path from "path";
 

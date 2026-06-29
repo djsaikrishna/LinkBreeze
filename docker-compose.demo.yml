@@ -2,7 +2,7 @@ services:
   linkbreeze-demo:
     build: .
     ports:
-      - "3001:3000"
+      - "3010:3000"
     volumes:
       - ./data-demo:/app/data
     environment:
