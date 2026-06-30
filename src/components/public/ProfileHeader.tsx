@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import type { ProfileRow } from "@/server/queries";
 
 interface ProfileHeaderProps {
@@ -20,11 +21,12 @@ export function ProfileHeader({ profile, textColor }: ProfileHeaderProps) {
       className="flex flex-col items-center text-center"
     >
       {profile.avatarUrl ? (
-        <img
+        <Image
           src={profile.avatarUrl}
           alt={displayName}
           width={96}
           height={96}
+          unoptimized
           className="mb-4 h-24 w-24 rounded-full object-cover"
           style={{ padding: 3, background: "var(--aurora-grad)", boxShadow: "0 0 32px rgba(124,58,237,0.35)" }}
           loading="eager"

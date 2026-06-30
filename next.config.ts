@@ -18,6 +18,15 @@ const nextConfig: NextConfig = {
   // so the standalone server loads it from node_modules at runtime.
   serverExternalPackages: ["better-sqlite3"],
 
+  // Allow SVG through the image optimizer (the logo + QR code are SVG). The
+  // CSP strips scripting/sandbox from served SVG, which neutralizes the XSS
+  // risk that `dangerouslyAllowSVG` would otherwise introduce.
+  images: {
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    contentDispositionType: "attachment",
+  },
+
   async headers() {
     return [
       {

@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Trash2, Save } from "lucide-react";
+import Image from "next/image";
+import { Plus, Trash2, Save, Upload } from "lucide-react";
 import { updateProfile } from "@/server/actions/profile";
+import { uploadAvatar } from "@/server/actions/uploads";
 import { SUPPORTED_PLATFORMS, getPlatformLabel, type SocialPlatform } from "@/lib/social-icons";
 import type { SocialLink } from "@/server/queries";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,31 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   );
   const [pending, startTransition] = React.useTransition();
   const [saved, setSaved] = React.useState(false);
+  const [avatarUrl, setAvatarUrl] = React.useState(profile?.avatarUrl ?? "");
+  const [uploading, setUploading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await uploadAvatar(fd);
+      if (res.success) {
+        setAvatarUrl(res.url);
+      } else {
+        setUploadError(res.error);
+      }
+    } catch {
+      setUploadError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const addSocial = () => {
     setSocialLinks((prev) => [...prev, { platform: "instagram", url: "" }]);
@@ -84,11 +111,13 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
-              {profile?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profile.avatarUrl}
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
                   alt=""
+                  width={64}
+                  height={64}
+                  unoptimized
                   className="size-16 rounded-full object-cover"
                 />
               ) : (
@@ -101,10 +130,27 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 <Input
                   id="avatarUrl"
                   name="avatarUrl"
-                  defaultValue={profile?.avatarUrl ?? ""}
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="https://…/avatar.png"
                   className="mt-1.5"
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted">
+                    <Upload className="size-4" />
+                    {uploading ? "Uploading…" : "Upload image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUpload}
+                      disabled={uploading}
+                    />
+                  </label>
+                  {uploadError ? (
+                    <span className="text-xs text-destructive">{uploadError}</span>
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -156,12 +202,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
               <p className="text-sm text-muted-foreground">No social links added yet.</p>
             ) : (
               socialLinks.map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <Select
                     value={item.platform}
                     onValueChange={(v) => updateSocial(i, "platform", v ?? "instagram")}
                   >
-                    <SelectTrigger className="w-40 shrink-0">
+                    <SelectTrigger className="w-full sm:w-40 sm:shrink-0">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -172,22 +218,24 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Input
-                    value={item.url}
-                    onChange={(e) => updateSocial(i, "url", e.target.value)}
-                    placeholder="https://…"
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    type="button"
-                    onClick={() => removeSocial(i)}
-                    className="text-destructive"
-                    aria-label="Remove social link"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <div className="flex items-center gap-2 sm:flex-1">
+                    <Input
+                      value={item.url}
+                      onChange={(e) => updateSocial(i, "url", e.target.value)}
+                      placeholder="https://…"
+                      className="min-w-0 flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      type="button"
+                      onClick={() => removeSocial(i)}
+                      className="text-destructive"
+                      aria-label="Remove social link"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}

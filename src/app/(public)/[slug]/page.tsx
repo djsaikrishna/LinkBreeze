@@ -11,6 +11,8 @@ import {
   type SocialLink,
 } from "@/server/queries";
 import { getVisitorHash, getDeviceType } from "@/lib/visitor";
+import { rateLimit } from "@/lib/rate-limit";
+import { getCountry } from "@/lib/geo";
 import { ProfileHeader } from "@/components/public/ProfileHeader";
 import { LinkCard } from "@/components/public/LinkCard";
 import { SocialIcons } from "@/components/public/SocialIcons";
@@ -57,13 +59,11 @@ export async function generateMetadata({
       url,
       type: "profile",
       siteName: title,
-      images: profile.avatarUrl ? [{ url: profile.avatarUrl }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: profile.avatarUrl ? [profile.avatarUrl] : undefined,
     },
   };
 }
@@ -87,7 +87,12 @@ export default async function PublicPage({ params }: PageProps) {
     const referrer = (h.get("referer") || h.get("referrer") || "").toString();
     const visitorHash = getVisitorHash(ip, userAgent);
     const deviceType = getDeviceType(userAgent);
-    await recordPageview(visitorHash, referrer || null, deviceType, null);
+    const country = getCountry(h);
+    // Light per-IP cap so refresh/crawler bursts don't inflate view counts.
+    const viewRl = rateLimit(`view:${ip}`, 1, 30_000);
+    if (viewRl.ok) {
+      await recordPageview(visitorHash, referrer || null, deviceType, country);
+    }
   } catch {
     // Never let analytics break the page render.
   }

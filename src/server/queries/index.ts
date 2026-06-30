@@ -361,6 +361,26 @@ export async function createUser(
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
+// Cached retention window so we don't read settings on every pageview.
+let retentionCache: { days: number; at: number } = { days: -1, at: 0 };
+
+/** Opportunistically prune analytics older than the configured retention
+ *  window (settings key `analyticsRetentionDays`). Reads the setting at most
+ *  once per minute; a no-op when no retention is configured. */
+async function pruneAnalyticsIfDue(): Promise<void> {
+  const now = Date.now();
+  if (now - retentionCache.at > 60_000) {
+    const raw = await getSetting("analyticsRetentionDays");
+    const days = raw && /^\d+$/.test(raw) ? Number(raw) : 0;
+    retentionCache = { days, at: now };
+  }
+  const { days } = retentionCache;
+  if (days <= 0) return;
+  const cutoff = sql`datetime('now', ${`-${days} days`})`;
+  db.delete(analyticsPageviews).where(lt(analyticsPageviews.createdAt, cutoff)).run();
+  db.delete(analyticsClicks).where(lt(analyticsClicks.createdAt, cutoff)).run();
+}
+
 export async function recordPageview(
   visitorHash: string,
   referrer: string | null,
@@ -373,6 +393,7 @@ export async function recordPageview(
     deviceType: deviceType ?? null,
     country: country ?? null,
   });
+  await pruneAnalyticsIfDue();
 }
 
 export async function recordClick(
@@ -391,24 +412,80 @@ export async function recordClick(
     .where(eq(links.id, linkId));
 }
 
-export async function getDashboardStats(): Promise<DashboardStats> {
-  const sevenDaysAgo = sql`datetime('now', '-7 days')`;
+export type AnalyticsRange = "7d" | "30d" | "90d" | "all";
 
-  // Total views in last 7 days
+export interface BreakdownEntry {
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsBreakdown {
+  referrers: BreakdownEntry[];
+  devices: BreakdownEntry[];
+  countries: BreakdownEntry[];
+}
+
+export interface LinkStats {
+  link: LinkRow;
+  totalClicks: number;
+  clicksPerDay: Array<{ date: string; clicks: number }>;
+  topReferrers: BreakdownEntry[];
+}
+
+/** SQL expression bounding the start of the analytics window. */
+function sinceExpr(range: AnalyticsRange) {
+  if (range === "all") return sql`datetime('1970-01-01')`;
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  return sql`datetime('now', ${`-${days} days`})`;
+}
+
+/** Number of day-buckets to render for a range. */
+async function rangeDayCount(range: AnalyticsRange): Promise<number> {
+  if (range !== "all") {
+    return range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  }
+  // "all": span from the earliest analytics record to today (capped at 365).
+  const [pv] = await db
+    .select({ m: sql<string>`min(${analyticsPageviews.createdAt})` })
+    .from(analyticsPageviews);
+  const [cl] = await db
+    .select({ m: sql<string>`min(${analyticsClicks.createdAt})` })
+    .from(analyticsClicks);
+  const earliest = [pv?.m, cl?.m].filter(Boolean).sort()[0];
+  if (!earliest) return 30;
+  const start = new Date(earliest.replace(" ", "T") + "Z").getTime();
+  const days = Math.ceil((Date.now() - start) / 86_400_000);
+  return Math.min(365, Math.max(1, days));
+}
+
+/** `days` UTC date keys ending today, for zero-filling a chart series. */
+function buildDaySeries(days: number): string[] {
+  const out: string[] = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+export async function getDashboardStats(range: AnalyticsRange = "7d"): Promise<DashboardStats> {
+  const since = sinceExpr(range);
+  const seriesDates = buildDaySeries(await rangeDayCount(range));
+
   const viewRows = await db
     .select({ c: sql<number>`count(*)` })
     .from(analyticsPageviews)
-    .where(gt(analyticsPageviews.createdAt, sevenDaysAgo));
+    .where(gt(analyticsPageviews.createdAt, since));
   const totalViews = viewRows[0]?.c ?? 0;
 
-  // Total clicks in last 7 days
   const clickRows = await db
     .select({ c: sql<number>`count(*)` })
     .from(analyticsClicks)
-    .where(gt(analyticsClicks.createdAt, sevenDaysAgo));
+    .where(gt(analyticsClicks.createdAt, since));
   const totalClicks = clickRows[0]?.c ?? 0;
 
-  // Top links by clicks in last 7 days
   const topLinkRows = await db
     .select({
       id: analyticsClicks.linkId,
@@ -417,7 +494,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     })
     .from(analyticsClicks)
     .innerJoin(links, eq(links.id, analyticsClicks.linkId))
-    .where(gt(analyticsClicks.createdAt, sevenDaysAgo))
+    .where(gt(analyticsClicks.createdAt, since))
     .groupBy(analyticsClicks.linkId)
     .orderBy(desc(sql`count(*)`))
     .limit(5);
@@ -427,14 +504,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     clicks: Number(r.clicks),
   }));
 
-  // Views per day for the last 7 days
   const viewsPerDayRows = await db
     .select({
       date: sql<string>`date(${analyticsPageviews.createdAt})`,
       views: sql<number>`count(*)`,
     })
     .from(analyticsPageviews)
-    .where(gt(analyticsPageviews.createdAt, sevenDaysAgo))
+    .where(gt(analyticsPageviews.createdAt, since))
     .groupBy(sql`date(${analyticsPageviews.createdAt})`)
     .orderBy(asc(sql`date(${analyticsPageviews.createdAt})`));
 
@@ -444,37 +520,97 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       clicks: sql<number>`count(*)`,
     })
     .from(analyticsClicks)
-    .where(gt(analyticsClicks.createdAt, sevenDaysAgo))
+    .where(gt(analyticsClicks.createdAt, since))
     .groupBy(sql`date(${analyticsClicks.createdAt})`)
     .orderBy(asc(sql`date(${analyticsClicks.createdAt})`));
 
-  // Merge into a 7-day series with zero-fill.
+  const viewsMap = new Map<string, number>();
+  for (const r of viewsPerDayRows) viewsMap.set(r.date, Number(r.views));
   const clicksMap = new Map<string, number>();
   for (const r of clicksPerDayRows) clicksMap.set(r.date, Number(r.clicks));
 
-  const dateSeries: Array<{ date: string; views: number; clicks: number }> = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    const views = viewsPerDayRows.find((r) => r.date === key);
-    dateSeries.push({
-      date: key,
-      views: views ? Number(views.views) : 0,
-      clicks: clicksMap.get(key) ?? 0,
-    });
-  }
+  const viewsPerDay = seriesDates.map((date) => ({
+    date,
+    views: viewsMap.get(date) ?? 0,
+    clicks: clicksMap.get(date) ?? 0,
+  }));
 
   const ctr = totalViews > 0 ? Math.round((totalClicks / totalViews) * 100) : 0;
 
+  return { totalViews, totalClicks, ctr, topLinks, viewsPerDay };
+}
+
+/** Top referrers / devices / countries among views in the window. */
+export async function getAnalyticsBreakdown(range: AnalyticsRange = "7d"): Promise<AnalyticsBreakdown> {
+  const clean = (rows: Array<{ label: string | null; count: number }>) =>
+    rows
+      .filter((r) => r.label && r.label.trim() !== "")
+      .map((r) => ({ label: r.label as string, count: Number(r.count) }));
+
+  const [referrerRows, deviceRows, countryRows] = await Promise.all([
+    db.select({ label: analyticsPageviews.referrer, count: sql<number>`count(*)` })
+      .from(analyticsPageviews).where(gt(analyticsPageviews.createdAt, sinceExpr(range)))
+      .groupBy(analyticsPageviews.referrer).orderBy(desc(sql`count(*)`)).limit(8),
+    db.select({ label: analyticsPageviews.deviceType, count: sql<number>`count(*)` })
+      .from(analyticsPageviews).where(gt(analyticsPageviews.createdAt, sinceExpr(range)))
+      .groupBy(analyticsPageviews.deviceType).orderBy(desc(sql`count(*)`)).limit(8),
+    db.select({ label: analyticsPageviews.country, count: sql<number>`count(*)` })
+      .from(analyticsPageviews).where(gt(analyticsPageviews.createdAt, sinceExpr(range)))
+      .groupBy(analyticsPageviews.country).orderBy(desc(sql`count(*)`)).limit(8),
+  ]);
+
   return {
-    totalViews,
-    totalClicks,
-    ctr,
-    topLinks,
-    viewsPerDay: dateSeries,
+    referrers: clean(referrerRows),
+    devices: clean(deviceRows),
+    countries: clean(countryRows),
   };
+}
+
+/** Per-link drill-down: clicks over time + total + top referrers. */
+export async function getLinkStats(linkId: number, range: AnalyticsRange = "30d"): Promise<LinkStats | null> {
+  const linkRows = await db.select().from(links).where(eq(links.id, linkId)).limit(1);
+  const link = linkRows[0];
+  if (!link) return null;
+
+  const since = sinceExpr(range);
+  const seriesDates = buildDaySeries(await rangeDayCount(range));
+
+  const totalRows = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(analyticsClicks)
+    .where(and(eq(analyticsClicks.linkId, linkId), gt(analyticsClicks.createdAt, since)));
+  const totalClicks = totalRows[0]?.c ?? 0;
+
+  const perDayRows = await db
+    .select({
+      date: sql<string>`date(${analyticsClicks.createdAt})`,
+      clicks: sql<number>`count(*)`,
+    })
+    .from(analyticsClicks)
+    .where(and(eq(analyticsClicks.linkId, linkId), gt(analyticsClicks.createdAt, since)))
+    .groupBy(sql`date(${analyticsClicks.createdAt})`)
+    .orderBy(asc(sql`date(${analyticsClicks.createdAt})`));
+  const clicksMap = new Map<string, number>();
+  for (const r of perDayRows) clicksMap.set(r.date, Number(r.clicks));
+  const clicksPerDay = seriesDates.map((date) => ({ date, clicks: clicksMap.get(date) ?? 0 }));
+
+  const refRows = await db
+    .select({ label: analyticsClicks.referrer, count: sql<number>`count(*)` })
+    .from(analyticsClicks)
+    .where(and(eq(analyticsClicks.linkId, linkId), gt(analyticsClicks.createdAt, since)))
+    .groupBy(analyticsClicks.referrer)
+    .orderBy(desc(sql`count(*)`))
+    .limit(8);
+  const topReferrers = refRows
+    .filter((r) => r.label && r.label.trim() !== "")
+    .map((r) => ({ label: r.label as string, count: Number(r.count) }));
+
+  return { link, totalClicks, clicksPerDay, topReferrers };
+}
+
+export async function getLink(id: number): Promise<LinkRow | null> {
+  const rows = await db.select().from(links).where(eq(links.id, id)).limit(1);
+  return rows[0] ?? null;
 }
 
 // Keep `inArray` import used (for potential future batch queries)

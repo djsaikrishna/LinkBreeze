@@ -96,12 +96,10 @@ async function seed() {
   console.log(`✓ ${themes.length} themes created`);
 
   // ─── Fake analytics (last 7 days) ──────────────
-  const now = Date.now();
   const referrers = [null, "https://instagram.com", "https://tiktok.com", "https://youtube.com", null, "https://google.com", null];
   const devices = ["mobile", "mobile", "desktop", "mobile", "tablet"];
 
   for (let day = 6; day >= 0; day--) {
-    const date = new Date(now - day * 86400000);
     const viewsCount = Math.floor(Math.random() * 80) + 30;
     for (let v = 0; v < viewsCount; v++) {
       const hash = Math.random().toString(36).substring(2, 18);

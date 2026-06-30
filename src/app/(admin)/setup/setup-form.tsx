@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { setup } from "@/server/actions/auth";
@@ -34,10 +35,13 @@ export function SetupForm({ defaultUsername }: { defaultUsername: string }) {
     <div className="flex min-h-screen w-full items-center justify-center px-5 py-10">
       <div className="w-full max-w-md aurora-rise">
         <header className="mb-8 flex flex-col items-center text-center">
-          <img
+          <Image
             src="/logo-mark.svg"
             alt=""
             aria-hidden
+            width={56}
+            height={56}
+            unoptimized
             className="mb-5 size-14"
             style={{ filter: "drop-shadow(0 0 24px rgba(124,58,237,0.45))" }}
           />

@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { db } from "@/db";
+import { analyticsPageviews, analyticsClicks, links } from "@/db/schema";
+import { eq, gt, sql } from "drizzle-orm";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type Range = "7d" | "30d" | "90d" | "all";
+const VALID: Range[] = ["7d", "30d", "90d", "all"];
+
+function parseRange(v: string | null): Range {
+  return v && (VALID as string[]).includes(v) ? (v as Range) : "7d";
+}
+
+function sinceExpr(range: Range) {
+  if (range === "all") return sql`datetime('1970-01-01')`;
+  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  return sql`datetime('now', ${`-${days} days`})`;
+}
+
+function csvCell(v: unknown): string {
+  const s = v == null ? "" : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** CSV export of raw analytics rows for the chosen range/metric. Auth-required. */
+export async function GET(request: NextRequest) {
+  if (!(await getSession())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sp = new URL(request.url).searchParams;
+  const range = parseRange(sp.get("range"));
+  const metric = sp.get("metric") === "clicks" ? "clicks" : "views";
+  const since = sinceExpr(range);
+
+  let header: string[];
+  let lines: string[];
+
+  if (metric === "views") {
+    const rows = await db
+      .select({
+        createdAt: analyticsPageviews.createdAt,
+        visitorHash: analyticsPageviews.visitorHash,
+        referrer: analyticsPageviews.referrer,
+        country: analyticsPageviews.country,
+        deviceType: analyticsPageviews.deviceType,
+      })
+      .from(analyticsPageviews)
+      .where(gt(analyticsPageviews.createdAt, since));
+    header = ["timestamp", "visitor_hash", "referrer", "country", "device"];
+    lines = rows.map((r) =>
+      [r.createdAt, r.visitorHash, r.referrer, r.country, r.deviceType]
+        .map(csvCell)
+        .join(","),
+    );
+  } else {
+    const rows = await db
+      .select({
+        createdAt: analyticsClicks.createdAt,
+        visitorHash: analyticsClicks.visitorHash,
+        referrer: analyticsClicks.referrer,
+        title: links.title,
+        url: links.url,
+      })
+      .from(analyticsClicks)
+      .leftJoin(links, eq(links.id, analyticsClicks.linkId))
+      .where(gt(analyticsClicks.createdAt, since));
+    header = ["timestamp", "visitor_hash", "referrer", "link_title", "link_url"];
+    lines = rows.map((r) =>
+      [r.createdAt, r.visitorHash, r.referrer, r.title, r.url].map(csvCell).join(","),
+    );
+  }
+
+  const csv = [header.join(","), ...lines].join("\n");
+  return new NextResponse(csv, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="linkbreeze-${metric}-${range}.csv"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}

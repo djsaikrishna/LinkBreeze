@@ -18,12 +18,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Link from "next/link";
 import {
   Plus,
   GripVertical,
   Pencil,
   Trash2,
   ExternalLink,
+  BarChart3,
 } from "lucide-react";
 import {
   createLink,
@@ -127,7 +129,7 @@ function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
             <p className="truncate text-xs text-muted-foreground">{link.url}</p>
           </div>
 
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          <span className="hidden shrink-0 text-xs tabular-nums text-muted-foreground sm:inline">
             {link.clicksCount} clicks
           </span>
 
@@ -135,11 +137,19 @@ function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-muted-foreground hover:text-foreground"
+            className="hidden shrink-0 text-muted-foreground hover:text-foreground sm:inline-flex"
             aria-label="Open link"
           >
             <ExternalLink className="size-4" />
           </a>
+
+          <Link
+            href={`/links/${link.id}`}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Link analytics"
+          >
+            <BarChart3 className="size-4" />
+          </Link>
 
           <Switch
             checked={link.isActive}
@@ -185,14 +195,19 @@ function LinkDialog({ open, onOpenChange, editing }: LinkDialogProps) {
   const [active, setActive] = React.useState(editing?.isActive ?? true);
   const router = useRouter();
 
-  // Reset state when the dialog opens for a different link.
-  React.useEffect(() => {
+  // Reset local form state whenever the dialog opens (or switches target).
+  // Adjusting state during render — instead of in an effect — avoids the
+  // cascading-render anti-pattern.
+  const sessionKey = open ? `open:${editing?.id ?? "new"}` : "closed";
+  const [lastSession, setLastSession] = React.useState(sessionKey);
+  if (sessionKey !== lastSession) {
+    setLastSession(sessionKey);
     if (open) {
       setType(editing?.type ?? "url");
       setHighlighted(editing?.isHighlighted ?? false);
       setActive(editing?.isActive ?? true);
     }
-  }, [open, editing]);
+  }
 
   const urlLabel =
     type === "email" ? "Email address"
@@ -378,12 +393,14 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkRow[] }) {
   const [editing, setEditing] = React.useState<LinkRow | null>(null);
   const [deleting, setDeleting] = React.useState<LinkRow | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const router = useRouter();
 
-  // Sync local state when server data changes (after router.refresh())
-  React.useEffect(() => {
+  // Sync local state when the server passes fresh data (after router.refresh()).
+  // Adjusting state during render avoids the setState-in-effect anti-pattern.
+  const [lastInitial, setLastInitial] = React.useState(initialLinks);
+  if (initialLinks !== lastInitial) {
+    setLastInitial(initialLinks);
     setItems(initialLinks);
-  }, [initialLinks]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

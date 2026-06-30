@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/banner.png" alt="LinkBreeze" width="100%" />
+<img src="public/Public-Page-iMac-&-iPhone.png" alt="Public Page" width="100%" />
 
 <br/>
 
@@ -101,8 +101,8 @@ cloudflared tunnel --url http://localhost:3000
 
 ## 📸 Screenshots
 
-> **Screenshots coming before public launch.**
-> Public page, admin dashboard, theme picker, analytics view.
+> **Screenshots coming soon.**
+> Public page, admin dashboard, theme picker, analytics view, settings.
 
 ## 🆚 Comparison
 

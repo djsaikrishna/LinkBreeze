@@ -21,15 +21,14 @@ const TABS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-/** Fixed glass bottom tab bar (mobile only). Thumb-reachable, always visible. */
+/** Fixed opaque bottom tab bar (mobile only). Thumb-reachable, always visible. */
 export function MobileTabBar() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Primary"
-      className="glass fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-lavender/12 px-1 pb-[env(safe-area-inset-bottom)] md:hidden"
-      style={{ background: "rgba(10, 8, 32, 0.82)" }}
+      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-lavender/12 bg-background px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_30px_-12px_rgba(5,3,20,0.85)] md:hidden"
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/");

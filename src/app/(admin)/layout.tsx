@@ -35,7 +35,7 @@ export default async function AdminLayout({
   // render the admin chrome (authed) or a bare shell (login / setup).
   if (!session) {
     return (
-      <div className="min-h-screen w-full dark">
+      <div className="min-h-dvh w-full dark">
         <AuroraBackground />
         {children}
       </div>
@@ -43,11 +43,13 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="dark relative min-h-screen bg-background text-foreground">
+    <div className="dark relative min-h-dvh bg-background text-foreground">
       <AuroraBackground />
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl">
-        {/* Sidebar */}
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar p-4 md:flex">
+      {/* Full-bleed row: sidebar anchors to the left edge instead of floating
+          in a centered box, so the layout stays grounded at every resolution. */}
+      <div className="flex w-full">
+        {/* Sidebar — pinned left, full viewport height, sticky while scrolling */}
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar p-4 md:flex md:sticky md:top-0 md:h-dvh md:self-start">
           <div className="mb-8 flex items-center gap-2 px-2">
             <Image src="/logo-mark.svg" alt="LinkBreeze" width={24} height={24} />
             <span className="font-heading text-lg font-semibold">
@@ -86,8 +88,9 @@ export default async function AdminLayout({
           </div>
         </aside>
 
-        {/* Mobile top bar */}
-        <div className="flex flex-1 flex-col">
+        {/* Main column */}
+        <div className="flex min-h-dvh flex-1 flex-col min-w-0">
+          {/* Mobile top bar */}
           <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
             <div className="flex items-center gap-2">
               <Image src="/logo-mark.svg" alt="LinkBreeze" width={24} height={24} />
@@ -100,16 +103,22 @@ export default async function AdminLayout({
             </form>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8">
-            {isDemoMode && (
-              <div className="mb-4 rounded-lg border border-violet/30 bg-violet/10 px-4 py-3 text-sm text-lavender">
-                <strong>Read-only demo.</strong> Deploy your own instance to make changes.{" "}
-                <a href="https://github.com/Manak-hash/LinkBreeze" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
-                  View on GitHub →
-                </a>
-              </div>
-            )}
-            {children}
+          {/* pb-24 reserves space for the fixed mobile tab bar so content is
+              never hidden behind it; md:pb-8 restores desktop padding. */}
+          <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
+            {/* Left-aligned cap so content grounds beside the sidebar on wide
+                screens instead of floating in the center. */}
+            <div className="w-full max-w-screen-2xl">
+              {isDemoMode && (
+                <div className="mb-4 rounded-lg border border-violet/30 bg-violet/10 px-4 py-3 text-sm text-lavender">
+                  <strong>Read-only demo.</strong> Deploy your own instance to make changes.{" "}
+                  <a href="https://github.com/Manak-hash/LinkBreeze" className="underline hover:text-foreground" target="_blank" rel="noopener noreferrer">
+                    View on GitHub →
+                  </a>
+                </div>
+              )}
+              {children}
+            </div>
           </main>
           <MobileTabBar />
         </div>

@@ -1,8 +1,10 @@
 import * as React from "react";
+import Image from "next/image";
 import { QrCode, Download } from "lucide-react";
-import { getSettings, getAllThemes, getActiveTheme } from "@/server/queries";
+import { getSettings, getSetting, getAllThemes, getActiveTheme } from "@/server/queries";
 import { SettingsForm } from "./settings-form";
 import { ChangePasswordForm } from "./change-password-form";
+import { DataManager } from "./data-manager";
 import {
   Card,
   CardContent,
@@ -19,6 +21,7 @@ export default async function SettingsPage() {
     getAllThemes(),
     getActiveTheme(),
   ]);
+  const retentionDays = await getSetting("analyticsRetentionDays");
 
   const slug = settings.slug || "u";
 
@@ -52,11 +55,12 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <div className="rounded-xl border border-border bg-white p-4">
-            <img
+            <Image
               src={`/api/qr?slug=${encodeURIComponent(slug)}&format=svg`}
               alt="QR code"
               width={200}
               height={200}
+              unoptimized
             />
           </div>
           <div className="flex gap-3">
@@ -79,6 +83,7 @@ export default async function SettingsPage() {
       </Card>
 
       <ChangePasswordForm />
+      <DataManager retentionDays={retentionDays ?? ""} />
     </div>
   );
 }

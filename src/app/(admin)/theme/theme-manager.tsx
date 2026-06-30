@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Check, Save, Palette } from "lucide-react";
 import { activateTheme, customizeActiveTheme } from "@/server/actions/theme";
 import type { ThemeRow } from "@/server/queries";
@@ -43,13 +44,15 @@ export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
   const [customPending, setCustomPending] = React.useState(false);
   const [linkStyle, setLinkStyle] = React.useState(active?.linkStyle ?? "glass");
   const [animationType, setAnimationType] = React.useState(active?.animationType ?? "lift");
+  const router = useRouter();
 
   const handleSelect = async (id: number) => {
     setSelecting(id);
     try {
       await activateTheme(id);
-      // Refresh to load the new active theme defaults.
-      window.location.reload();
+      // Re-fetch server data so the newly active theme's defaults render —
+      // without the jarring full-page reload that breaks SPA state.
+      router.refresh();
     } finally {
       setSelecting(null);
     }

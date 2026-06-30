@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getVisitorHash, getDeviceType } from "@/lib/visitor";
+import { rateLimit } from "@/lib/rate-limit";
+import { getCountry } from "@/lib/geo";
 import { recordPageview, recordClick } from "@/server/queries";
 
 export const runtime = "nodejs";
@@ -38,14 +40,26 @@ export async function POST(request: NextRequest) {
       (h.get("x-forwarded-for")?.split(",")[0] || "").trim() ||
       (h.get("x-real-ip") || "").toString() ||
       "0.0.0.0";
+
+    // Per-IP throttle: a genuine visitor won't approach 60 events/min.
+    const rl = rateLimit(`track:${ip}`, 60, 60_000);
+    if (!rl.ok) {
+      const retryAfter = Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000));
+      return NextResponse.json(
+        { ok: false, error: "Too many requests" },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
+    }
+
     const userAgent = (h.get("user-agent") || "").toString();
     const visitorHash = getVisitorHash(ip, userAgent);
     const deviceType = getDeviceType(userAgent);
+    const country = getCountry(h);
     const referrer =
       body.referrer || (h.get("referer") || h.get("referrer") || "").toString();
 
     if (type === "view") {
-      await recordPageview(visitorHash, referrer || null, deviceType, null);
+      await recordPageview(visitorHash, referrer || null, deviceType, country);
     } else {
       if (typeof body.linkId !== "number" || Number.isNaN(body.linkId)) {
         return NextResponse.json({ ok: false, error: "Missing linkId" }, { status: 400 });

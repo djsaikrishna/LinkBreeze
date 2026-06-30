@@ -1,61 +1,129 @@
 import * as React from "react";
+import Link from "next/link";
 import {
   Eye,
   MousePointerClick,
   TrendingUp,
   Link as LinkIcon,
+  Download,
 } from "lucide-react";
-import { getDashboardStats, getAllLinks } from "@/server/queries";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  getDashboardStats,
+  getAllLinks,
+  getAnalyticsBreakdown,
+  type AnalyticsRange,
+  type BreakdownEntry,
+} from "@/server/queries";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ViewsChart } from "./views-chart";
+import { RangePicker } from "./range-picker";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const [stats, links] = await Promise.all([
-    getDashboardStats(),
+const VALID_RANGES: AnalyticsRange[] = ["7d", "30d", "90d", "all"];
+
+function parseRange(value?: string): AnalyticsRange {
+  return value && (VALID_RANGES as string[]).includes(value)
+    ? (value as AnalyticsRange)
+    : "7d";
+}
+
+function BreakdownCard({
+  title,
+  description,
+  entries,
+}: {
+  title: string;
+  description: string;
+  entries: BreakdownEntry[];
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {entries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No data yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {entries.map((e) => {
+              const max = entries[0].count || 1;
+              const pct = Math.round((e.count / max) * 100);
+              return (
+                <li key={e.label} className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate">{e.label}</span>
+                    <span className="shrink-0 font-medium tabular-nums">{e.count}</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-[var(--aurora-grad)]"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range: rangeParam } = await searchParams;
+  const range = parseRange(rangeParam);
+
+  const [stats, links, breakdown] = await Promise.all([
+    getDashboardStats(range),
     getAllLinks(),
+    getAnalyticsBreakdown(range),
   ]);
 
   const activeCount = links.filter((l) => l.isActive).length;
 
   const cards = [
-    {
-      label: "Views (7d)",
-      value: stats.totalViews.toLocaleString(),
-      icon: Eye,
-      hint: "Page views over the last 7 days",
-    },
-    {
-      label: "Clicks (7d)",
-      value: stats.totalClicks.toLocaleString(),
-      icon: MousePointerClick,
-      hint: "Link clicks over the last 7 days",
-    },
-    {
-      label: "Click-through rate",
-      value: `${stats.ctr}%`,
-      icon: TrendingUp,
-      hint: "Clicks ÷ views",
-    },
-    {
-      label: "Active links",
-      value: activeCount.toString(),
-      icon: LinkIcon,
-      hint: `${links.length} total`,
-    },
+    { label: "Views", value: stats.totalViews.toLocaleString(), icon: Eye, hint: `Page views in range` },
+    { label: "Clicks", value: stats.totalClicks.toLocaleString(), icon: MousePointerClick, hint: `Link clicks in range` },
+    { label: "Click-through rate", value: `${stats.ctr}%`, icon: TrendingUp, hint: "Clicks ÷ views" },
+    { label: "Active links", value: activeCount.toString(), icon: LinkIcon, hint: `${links.length} total` },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Analytics for the last 7 days
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Analytics for the selected range
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/analytics/export?range=${range}&metric=views`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            <Download className="size-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </a>
+          <RangePicker current={range} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -91,7 +159,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Top links</CardTitle>
-            <CardDescription>Most clicked (7d)</CardDescription>
+            <CardDescription>Most clicked in range</CardDescription>
           </CardHeader>
           <CardContent>
             {stats.topLinks.length === 0 ? (
@@ -104,12 +172,15 @@ export default async function DashboardPage() {
                   return (
                     <li key={link.id} className="flex flex-col gap-1">
                       <div className="flex items-center justify-between gap-2 text-sm">
-                        <span className="flex items-center gap-2 truncate">
+                        <Link
+                          href={`/links/${link.id}`}
+                          className="flex items-center gap-2 truncate text-muted-foreground transition-colors hover:text-foreground"
+                        >
                           <Badge variant="secondary" className="font-mono">
                             {i + 1}
                           </Badge>
-                          <span className="truncate">{link.title}</span>
-                        </span>
+                          <span className="truncate text-foreground">{link.title}</span>
+                        </Link>
                         <span className="shrink-0 font-medium tabular-nums">
                           {link.clicks}
                         </span>
@@ -127,6 +198,24 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <BreakdownCard
+          title="Top referrers"
+          description="Where views came from"
+          entries={breakdown.referrers}
+        />
+        <BreakdownCard
+          title="Devices"
+          description="Views by device type"
+          entries={breakdown.devices}
+        />
+        <BreakdownCard
+          title="Countries"
+          description="Views by country"
+          entries={breakdown.countries}
+        />
       </div>
     </div>
   );
