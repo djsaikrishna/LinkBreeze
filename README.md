@@ -2,6 +2,8 @@
 
 <img src="public/banner.png" alt="LinkBreeze" width="100%" />
 
+<br/>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
@@ -14,6 +16,8 @@
 
 > **Stop paying $15/mo for Linktree.** LinkBreeze gives you links, analytics,
 > QR codes, themes, and a real admin panel — free, forever, in one Docker command.
+
+**[🔗 Live Demo](https://linkbreeze-demo.omnirise.dev/alex)** — see it in action (read-only).
 
 ## ✨ Features
 
@@ -46,6 +50,53 @@ npm install
 cp .env.example .env
 npx drizzle-kit migrate
 npm run dev
+```
+
+## 🌐 Making Your Page Public
+
+LinkBreeze runs on your server. Once deployed, your page is accessible to anyone
+at `https://your-domain.com/your-slug`. Here's how to get it online:
+
+### Option 1: Reverse Proxy with Your Domain
+
+Point your domain's A record to your server IP, then use a reverse proxy with
+automatic HTTPS:
+
+<details>
+<summary>Caddy (recommended — auto HTTPS)</summary>
+
+```
+links.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+</details>
+
+<details>
+<summary>nginx</summary>
+
+```nginx
+server {
+    server_name links.example.com;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+</details>
+
+### Option 2: Cloudflare Tunnel (no open ports)
+
+No domain purchase or port forwarding needed:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
 ```
 
 ## 📸 Screenshots
@@ -107,29 +158,13 @@ and stored in the database — no code changes needed.
 
 ## 🎨 Theme System
 
-Themes are JSON files. Create your own and submit via PR:
-
-```json
-{
-  "name": "My Custom Theme",
-  "backgroundType": "gradient",
-  "backgroundValue": "#0f0c29,#302b63",
-  "fontFamily": "Inter",
-  "primaryColor": "#6366f1",
-  "textColor": "#e2e8f0",
-  "linkStyle": "glass",
-  "animationType": "lift"
-}
-```
-
-See [`public/themes/`](public/themes/) for examples.
+5 themes are included out of the box (Midnight, Sunset, Ocean, Mono, Forest).
+Customize any of them from the admin panel — colors, fonts, backgrounds, animations.
+No code or config files needed.
 
 ## 🤝 Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-The easiest way to contribute is by creating a theme — it's just a JSON file,
-no coding required.
 
 ## 📜 License
 
@@ -138,6 +173,3 @@ MIT — do whatever you want. See [LICENSE](LICENSE).
 ## 🏢 About
 
 Built by [Manak-hash](https://github.com/Manak-hash) · An [OmniRise](https://omnirise.dev) project.
-
-LinkBreeze is open-source under MIT. A managed cloud version is available at
-[$5/mo](https://omnirise.dev) for those who prefer not to self-host.

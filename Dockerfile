@@ -17,6 +17,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 ENV DATABASE_PATH=/app/data/linkbreeze.db
 
 # Create data directory as root BEFORE switching to node user
@@ -33,6 +34,7 @@ USER node
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --spider -q http://localhost:3000/api/health || exit 1
+  CMD wget --spider -q http://127.0.0.1:3000/api/health || exit 1
 
-CMD ["node", "server.js"]
+# Override Docker's HOSTNAME so Next.js binds to 0.0.0.0
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 node server.js"]
