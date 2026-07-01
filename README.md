@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="public/Public-Page-iMac-&-iPhone.png" alt="Public Page" width="100%" />
+<img src="public/Public-Page-iPhone-Dashboard-iMac(-10MB).png" alt="Banner" width="100%" />
 
 <br/>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/users/Manak-hash/packages/container/package/linkbreeze)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![OmniRise](https://img.shields.io/badge/OmniRise-omnirise.dev-06B6D4?style=for-the-badge)](https://omnirise.dev)
@@ -32,25 +32,64 @@
 
 ## 🚀 Quick Start
 
+> Zero config. One command. Your Linktree alternative is live in 30 seconds.
+
+### 🐳 Docker (Recommended)
+
+The fastest path to production. No Node.js, no npm, no config files needed.
+
 ```bash
-# Clone and run
+docker run -d \
+  --name linkbreeze \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -v linkbreeze-data:/app/data \
+  ghcr.io/manak-hash/linkbreeze:latest
+```
+Then open http://localhost:3000 the setup wizard takes under 30 seconds.
+
+### 🧩 Docker Compose (Recommended for Self-Hosters)
+
+Best if you want to customize ports, add a reverse proxy, or manage updates easily:
+
+```bash
 git clone https://github.com/Manak-hash/LinkBreeze.git
 cd LinkBreeze
 docker compose up -d
 ```
 
-Visit `http://localhost:3000` and follow the setup wizard. Done in 30 seconds.
+Check logs anytime with:
 
-### Manual (without Docker)
+```bash
+docker compose logs -f linkbreeze
+```
+
+Upgrade to the latest version:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+### 🔧 Manual (without Docker)
 
 ```bash
 git clone https://github.com/Manak-hash/LinkBreeze.git
 cd LinkBreeze
+
 npm install
+
+# Configure environment
 cp .env.example .env
+# Edit .env to set your SECRET_KEY and DATABASE_PATH if needed
+
+# Run database migrations
 npx drizzle-kit migrate
+
+# Start development server
 npm run dev
 ```
+
+> For production, use npm run build && npm start instead of npm run dev.
 
 ## 🌐 Making Your Page Public
 
@@ -101,8 +140,38 @@ cloudflared tunnel --url http://localhost:3000
 
 ## 📸 Screenshots
 
-> **Screenshots coming soon.**
-> Public page, admin dashboard, theme picker, analytics view, settings.
+<details>
+    <summary>Click to expand</summary>
+    <br/>
+
+<table>
+    <tr>
+    <td>Public Page</td>
+    <td>Admin Dashboard</td>
+    </tr>
+    <tr>
+    <td><img src="public/screenshots/Public-Page.jpeg" alt="Public Page" /></td>
+    <td><img src="public/screenshots/Admin-Dashboard.jpeg" alt="Admin Dashboard" /></td>
+    </tr>
+    <tr>
+    <td>Links</td>
+    <td>Profile</td>
+    </tr>
+    <tr>
+    <td><img src="public/screenshots/Links.jpeg" alt="Links Page" /></td>
+    <td><img src="public/screenshots/Profile.jpeg" alt="Profile Page" /></td>
+    </tr>
+    <tr>
+    <td>Theme</td>
+    <td>Settings</td>
+    </tr>
+    <tr>
+    <td><img src="public/screenshots/Theme-Picker.jpeg" alt="Theme Picker" /></td>
+    <td><img src="public/screenshots/Settings.jpeg" alt="Settings Page" /></td>
+    </tr>
+</table>
+
+</details>
 
 ## 🆚 Comparison
 
