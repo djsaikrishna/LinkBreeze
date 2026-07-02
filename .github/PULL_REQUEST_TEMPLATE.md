@@ -15,6 +15,7 @@ Brief description of changes.
 - [ ] Code follows the project's style guidelines
 - [ ] Self-review completed
 - [ ] TypeScript passes (`npx tsc --noEmit --skipLibCheck`)
+- [ ] Tests pass (`npm run test`)
 - [ ] Build succeeds (`npm run build`)
 - [ ] No new database access outside `src/server/queries/`
 - [ ] All new inputs have Zod validation

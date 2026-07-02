@@ -38,24 +38,62 @@
 
 The fastest path to production. No Node.js, no npm, no config files needed.
 
+**Linux / macOS / Windows CMD** — run as a single line:
+
 ```bash
-docker run -d \
-  --name linkbreeze \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -v linkbreeze-data:/app/data \
+docker run -d --name linkbreeze --restart unless-stopped -p 3000:3000 -v linkbreeze-data:/app/data ghcr.io/manak-hash/linkbreeze:latest
+```
+
+**Windows PowerShell** — same command, use backticks for line breaks:
+
+```powershell
+docker run -d `
+  --name linkbreeze `
+  --restart unless-stopped `
+  -p 3000:3000 `
+  -v linkbreeze-data:/app/data `
   ghcr.io/manak-hash/linkbreeze:latest
 ```
-Then open http://localhost:3000 the setup wizard takes under 30 seconds.
 
-### 🧩 Docker Compose (Recommended for Self-Hosters)
+Then open http://localhost:3000 — the setup wizard takes under 30 seconds.
 
-Best if you want to customize ports, add a reverse proxy, or manage updates easily:
+> **First time?** Make sure Docker Desktop (Windows/Mac) or the Docker daemon
+> (Linux) is running before you execute the command.
+
+### 🧩 Docker Compose
+
+Best if you want to customize ports, add a reverse proxy, or manage updates easily.
+
+**Option A — Pull the pre-built image (fastest, no build step):**
+
+Create a `docker-compose.yml` with:
+
+```yaml
+services:
+  linkbreeze:
+    image: ghcr.io/manak-hash/linkbreeze:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - linkbreeze-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  linkbreeze-data:
+```
+
+Then:
+
+```bash
+docker compose up -d
+```
+
+**Option B — Build from source (for development or customization):**
 
 ```bash
 git clone https://github.com/Manak-hash/LinkBreeze.git
 cd LinkBreeze
-docker compose up -d
+docker compose up -d --build
 ```
 
 Check logs anytime with:
@@ -209,6 +247,8 @@ cloudflared tunnel --url http://localhost:3000
 
 - [Contributing Guide](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
 - [Architecture Decisions](docs/adr/)
 - [Configuration Reference](#configuration)
 

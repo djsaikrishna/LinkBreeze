@@ -1,11 +1,25 @@
+# LinkBreeze — Docker Compose
+#
+# Uses the pre-built image from GitHub Container Registry.
+# This is the fastest way to deploy: docker compose up -d
+#
+# To build from source instead (for development or customization):
+#   1. Comment out the "image" line below
+#   2. Uncomment the "build" line
+#   3. Run: docker compose up -d --build
+
 services:
   linkbreeze:
-    build: .
+    image: ghcr.io/manak-hash/linkbreeze:latest
+    # build: .
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
+      - linkbreeze-data:/app/data
     environment:
       - DATABASE_PATH=/app/data/linkbreeze.db
       - SECRET_KEY=${SECRET_KEY:-changeme-in-production}
     restart: unless-stopped
+
+volumes:
+  linkbreeze-data:

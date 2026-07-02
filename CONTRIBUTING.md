@@ -37,6 +37,7 @@ Visit `http://localhost:3000` — you'll see the setup wizard on first run.
 3. **Test your changes:**
    ```bash
    npx tsc --noEmit --skipLibCheck  # Type check
+   npm run test                      # Unit tests (Vitest)
    npm run build                     # Full build
    ```
 
@@ -49,14 +50,20 @@ Visit `http://localhost:3000` — you'll see the setup wizard on first run.
 
 5. **Open a Pull Request** — fill out the PR template.
 
-## 🎨 Contributing a Theme (No Coding Required!)
+## 🎨 Contributing a Theme
 
-Themes are JSON files in `public/themes/`. To add one:
+Themes in LinkBreeze are stored in the database and managed through the admin
+panel's theme customizer. There is no JSON file system — themes are live config.
 
-1. Copy an existing theme file as a template
-2. Modify the values (colors, fonts, backgrounds)
-3. Test locally by selecting it in the admin theme picker
-4. Open a PR with your theme JSON
+### How to submit a theme
+
+1. **Run LinkBreeze locally** (see Quick Start above)
+2. **Open the theme customizer** at `http://localhost:3000/theme`
+3. **Design your theme** — set colors, fonts, backgrounds, animations, link styles
+4. **Take a screenshot** of the public page with your theme applied (mobile view preferred)
+5. **Export the theme values** — use the backup export feature (`/settings` → Export)
+   and extract the theme object, or manually copy the values from the customizer
+6. **Open a [Theme Submission issue](https://github.com/Manak-hash/LinkBreeze/issues/new?template=theme_submission.md)** with the values and screenshot
 
 ### Theme Properties
 
@@ -73,7 +80,7 @@ Themes are JSON files in `public/themes/`. To add one:
 
 ## 🐛 Reporting Bugs
 
-Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md). Include:
+Use the [Bug Report template](https://github.com/Manak-hash/LinkBreeze/issues/new?template=bug_report.md). Include:
 - LinkBreeze version
 - Deployment method (Docker, manual, Vercel)
 - Steps to reproduce
@@ -82,7 +89,7 @@ Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md). Include:
 
 ## 💡 Requesting Features
 
-Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md).
+Use the [Feature Request template](https://github.com/Manak-hash/LinkBreeze/issues/new?template=feature_request.md).
 
 ## 📏 Coding Standards
 
@@ -91,6 +98,7 @@ Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md).
 - **Zod validation** on every input boundary
 - **Conventional commits** — `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`
 - **No direct DB access** from components — always use the queries layer
+- **Tests** — add or update tests for any logic change. Run `npm run test` before submitting.
 
 ## 🏗️ Architecture Notes
 
@@ -100,5 +108,5 @@ to enable future multi-tenant support without rewriting the app.
 
 ## ❓ Questions?
 
-Open a [GitHub Discussion](https://github.com/Manak-hash/LinkBreeze/discussions)
-or an issue with the `question` label.
+Open an [issue](https://github.com/Manak-hash/LinkBreeze/issues) with the
+`question` label.

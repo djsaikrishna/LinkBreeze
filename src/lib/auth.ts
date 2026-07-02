@@ -1,72 +1,16 @@
 import "server-only";
-import * as crypto from "crypto";
 import * as bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import {
+  createToken,
+  verifyToken,
+  SESSION_MAX_AGE,
+  type SessionPayload,
+} from "@/lib/session-token";
 
 const SESSION_COOKIE = "lb_session";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days in seconds
 
-function getSecret(): string {
-  return (
-    process.env.SECRET_KEY ||
-    "linkbreeze-dev-secret-key-change-me-in-production-please"
-  );
-}
-
-export interface SessionPayload {
-  userId: number;
-  username: string;
-  exp: number;
-}
-
-function sign(data: string): string {
-  return crypto.createHmac("sha256", getSecret()).update(data).digest("hex");
-}
-
-function base64UrlEncode(str: string): string {
-  return Buffer.from(str, "utf8")
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function base64UrlDecode(str: string): string {
-  let padded = str.replace(/-/g, "+").replace(/_/g, "/");
-  while (padded.length % 4) padded += "=";
-  return Buffer.from(padded, "base64").toString("utf8");
-}
-
-function createToken(payload: SessionPayload): string {
-  const encoded = base64UrlEncode(JSON.stringify(payload));
-  const signature = sign(encoded);
-  return `${encoded}.${signature}`;
-}
-
-function verifyToken(token: string): SessionPayload | null {
-  const parts = token.split(".");
-  if (parts.length !== 2) return null;
-  const [encoded, signature] = parts;
-
-  const expected = sign(encoded);
-  // Constant-time compare to mitigate timing attacks
-  if (
-    expected.length !== signature.length ||
-    !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
-  ) {
-    return null;
-  }
-
-  try {
-    const payload = JSON.parse(base64UrlDecode(encoded)) as SessionPayload;
-    if (typeof payload.exp !== "number" || Date.now() > payload.exp) {
-      return null;
-    }
-    return payload;
-  } catch {
-    return null;
-  }
-}
+export type { SessionPayload };
 
 /**
  * Read and verify the session cookie. Returns the session payload or null.

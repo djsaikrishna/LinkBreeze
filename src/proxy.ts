@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/lib/session-token";
 
 /**
  * Protect admin routes. Public routes, the auth/setup pages, and the public
  * API endpoints are always accessible. Everything else under /dashboard,
- * /links, /profile, /theme, /settings requires a valid session cookie.
+ * /links, /profile, /theme, /settings requires a VALID session cookie
+ * (signature verified + expiry checked, not just cookie existence).
  */
 const PROTECTED_PREFIXES = [
   "/dashboard",
@@ -60,7 +62,9 @@ export function proxy(request: NextRequest) {
 
   if (isProtected) {
     const sessionCookie = request.cookies.get("lb_session")?.value;
-    if (!sessionCookie) {
+    // Verify the token — not just cookie existence. A forged or expired
+    // cookie is redirected to login just like a missing one.
+    if (!sessionCookie || !verifyToken(sessionCookie)) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
