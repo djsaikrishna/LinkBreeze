@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { version } from "@/lib/version";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  return NextResponse.json({ status: "ok", version: "1.0.0" });
+  return NextResponse.json({ status: "ok", version });
 }
