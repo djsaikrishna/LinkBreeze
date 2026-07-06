@@ -9,8 +9,10 @@ import { subscribe } from "@/server/actions/subscribers";
  * Renders as a plain POST form — works with JS disabled (server action handles
  * the submit). With JS, we intercept to show inline success/error feedback
  * without a page navigation.
+ *
+ * Colors come from theme tokens (CSS custom properties).
  */
-export function EmailCapture({ accentColor, textColor }: { accentColor: string; textColor: string }) {
+export function EmailCapture() {
   const [pending, startTransition] = React.useTransition();
   const [status, setStatus] = React.useState<"idle" | "success" | "error">("idle");
   const [error, setError] = React.useState("");
@@ -32,16 +34,16 @@ export function EmailCapture({ accentColor, textColor }: { accentColor: string; 
   if (status === "success") {
     return (
       <p
-        className="mt-6 mb-2 text-center text-sm"
-        style={{ color: accentColor }}
+        className="mb-2 mt-6 text-center text-sm"
+        style={{ color: "var(--lb-accent)" }}
       >
-        Thanks! You're on the list.
+        Thanks! You&apos;re on the list.
       </p>
     );
   }
 
   return (
-    <form action={handleSubmit} className="mt-6 mb-2 flex flex-col gap-2 sm:flex-row">
+    <form action={handleSubmit} className="mb-2 mt-6 flex flex-col gap-2 sm:flex-row">
       <input
         type="email"
         name="email"
@@ -49,14 +51,14 @@ export function EmailCapture({ accentColor, textColor }: { accentColor: string; 
         maxLength={320}
         placeholder="your@email.com"
         aria-label="Email address"
-        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none backdrop-blur-sm transition-colors focus:border-[var(--accent)]"
-        style={{ color: textColor }}
+        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none backdrop-blur-sm transition-colors focus:border-[var(--lb-accent)]"
+        style={{ color: "var(--lb-text)" }}
       />
       <button
         type="submit"
         disabled={pending}
         className="rounded-lg px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-        style={{ background: accentColor, color: "#fff" }}
+        style={{ background: "var(--lb-accent)", color: "#fff" }}
       >
         {pending ? "…" : "Subscribe"}
       </button>

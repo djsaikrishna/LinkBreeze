@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
+import {
+  Poppins,
+  Playfair_Display,
+  JetBrains_Mono,
+  Space_Grotesk,
+  DM_Sans,
+  Lora,
+  Bebas_Neue,
+  Sora,
+  Outfit,
+} from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -26,6 +37,75 @@ const satoshi = localFont({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// ─── Theme fonts (public page) ───────────────────────────────────────────────
+// Curated font picker. Each maps to a --lb-font-* CSS variable that the
+// theme-tokens resolver references. Loaded server-side via next/font/google —
+// no client-side font requests, no layout shift.
+const poppins = Poppins({
+  variable: "--lb-font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  variable: "--lb-font-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--lb-font-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--lb-font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--lb-font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const lora = Lora({
+  variable: "--lb-font-lora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const bebas = Bebas_Neue({
+  variable: "--lb-font-bebas",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
+
+const sora = Sora({
+  variable: "--lb-font-sora",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--lb-font-outfit",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -60,7 +140,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${clashDisplay.variable} ${satoshi.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${clashDisplay.variable} ${satoshi.variable} ${geistMono.variable} ${poppins.variable} ${playfair.variable} ${jetbrains.variable} ${spaceGrotesk.variable} ${dmSans.variable} ${lora.variable} ${bebas.variable} ${sora.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

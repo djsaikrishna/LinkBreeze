@@ -5,10 +5,22 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] (v1.0.3)
+## [1.1.0] - 2026-07-06
 
 ### Added
 
+- **Full theme system rework** — Complete redesign of the theming engine with a CSS custom property (`--lb-*`) token system. Every visual property is now a token consumed by public page components — no hardcoded colors, radii, or shadows anywhere.
+  - **9 preset themes** (was 5): Aurora (animated flagship), Glassmorphism, Neon Cyberpunk, Editorial Paper, Terminal Mono, Pastel Soft, Brutalist, Retro Sunset, Minimal Light
+  - **8 background types** (was 4): solid, gradient, radial, mesh, aurora, animated gradient, image, pattern — with angle, overlay color, and overlay opacity controls
+  - **6 link/card styles** (was 3): pill, rounded, sharp, glass, outline, neon
+  - **10 curated Google Fonts** (was 1): Inter, Poppins, Playfair Display, JetBrains Mono, Space Grotesk, DM Sans, Lora, Bebas Neue, Sora, Outfit — loaded server-side via `next/font/google` (zero client JS, no layout shift)
+  - **Full color palette**: accent, secondary, text, muted text, card background, card border — all accept hex or rgba
+  - **Typography controls**: font scale (80-150%), weight (300-700), letter spacing (-2 to 5)
+  - **Card controls**: button size (sm/md/lg), corner radius, border width, shadow strength (none/subtle/soft/medium/strong), hover effect (lift/scale/glow/none)
+  - **Layout controls**: container width, alignment (left/center/right), density (compact/normal/relaxed)
+  - **Effects**: glow toggle with custom color, glass blur, noise texture, reveal animation
+  - **Theme duplication**: clone any theme (preset or custom) as a new editable copy — presets are protected from deletion
+  - **Theme deletion**: custom (non-preset) themes can be deleted from the gallery
 - **External analytics injection** — Paste a Plausible, Umami, Matomo, or Google Analytics `<script>` snippet into Settings; it's injected onto your public page. Self-hosters no longer need to choose between LinkBreeze's built-in analytics and their existing stack.
 - **Custom CSS injection** — Raw CSS textarea in Settings, injected as a `<style>` tag on the public page. Power users can fine-tune anything the theme customizer can't reach.
 - **20 new social icons** — Threads, Bluesky, Mastodon, Reddit, Facebook, Pinterest, Snapchat, Patreon, Substack, Gumroad, Behance, Dribbble, SoundCloud, Bandcamp, Vimeo, Signal, PayPal, Buy Me a Coffee, Ko-fi, Medium. Total platform count: 32 (was 12).
@@ -26,11 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Schema expanded** — Themes table rebuilt with ~25 new columns. Migration `0004_theme-rework.sql` handles the upgrade safely (copies existing data, new columns get sensible defaults). Old themes continue to work.
+- **Token resolver** — New `src/lib/theme-tokens.ts` (466 lines) provides `resolveThemeTokens()` → CSS vars + keyframes, `buildThemeStyleBlock()`, `resolveBackground()` (handles all 8 types), `resolveFont()`, and animated background detection.
+- **Public components refactored** — `build-link-card.ts`, `LinkCard.tsx`, `ProfileHeader.tsx`, `SocialIcons.tsx`, `EmailCapture.tsx`, and `page.tsx` now consume `var(--lb-*)` tokens instead of hardcoded values.
+- **Customizer UI overhauled** — `theme-manager.tsx` rebuilt with 6 organized sections (Background, Colors, Typography, Card Style, Layout, Effects). Includes color pickers, font radio picker with previews, sliders, toggles, and selects for all enum fields.
+- **Server actions expanded** — `customizeActiveTheme` now accepts all new fields with Zod validation. New `duplicateActiveTheme` and `deleteCustomTheme` actions added.
+- **Export/import updated** — Theme JSON now carries all new fields. Backward compatible with old exports.
+- **Seed demo** — Now seeds the Aurora preset instead of the old 5-theme set.
 - **Removed dead `metadata` column** — The `links.metadata` column (default `"{}"`) was defined in the schema but never read or written anywhere in the codebase. Removed from the schema, backup Zod validation, and a new migration (`0001_remove_link_metadata.sql`) drops it from existing databases.
 - **allowedDevOrigins via env** — `next.config.ts` now reads `DEV_ORIGINS` from the environment instead of hardcoding IPs. Safe to commit — no private IPs in the repo.
 - **README features + comparison** — Features list expanded from 8 to 14 items. Comparison table expanded from 12 to 17 rows, now includes External Analytics, Email Capture, Embed Widgets, Link Thumbnails, Custom CSS, and Themes Import/Export.
-- **CONTRIBUTING.md** — Updated theme submission instructions to reference the new dedicated theme export feature.
-- **Migrations** — Three new migrations: `0001_remove_link_metadata`, `0002_add_image_url_to_links`, `0003_add_subscribers_table`. All run automatically on next startup.
+- **CONTRIBUTING.md** — Updated theme submission instructions to reference the new dedicated theme export feature and full token-based theme properties table.
+- **Migrations** — Four new migrations: `0001_remove_link_metadata`, `0002_add_image_url_to_links`, `0003_add_subscribers_table`, `0004_theme-rework`. All run automatically on next startup.
 
 ### Dependencies
 

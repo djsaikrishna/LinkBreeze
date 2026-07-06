@@ -31,7 +31,7 @@
 - **⏰ Link Scheduling** — Schedule links to appear/disappear automatically with date/time controls
 - **📊 Privacy-First Analytics** — Page views, click tracking, referrers — no cookies, no tracking
 - **📈 External Analytics** — Inject Plausible, Umami, Matomo, or Google Analytics with one paste
-- **🎨 Themes** — 5 built-in presets + full customizer (colors, fonts, backgrounds, animations) + theme import/export
+- **🎨 Themes** — 9 built-in presets (Aurora, Glassmorphism, Neon Cyberpunk, Editorial Paper, Terminal Mono, Pastel Soft, Brutalist, Retro Sunset, Minimal Light) + full customizer with CSS token system (colors, 10 fonts, 8 background types, 6 card styles, layout controls, effects) + theme duplicate/import/export
 - **✏️ Custom CSS** — Fine-tune your page with raw CSS injection
 - **📧 Email Capture** — Collect subscriber emails on your public page, export to CSV
 - **📱 Mobile-First** — Gorgeous on every screen. Loads in under 300ms. Zero client JavaScript.
@@ -234,7 +234,7 @@ cloudflared tunnel --url http://localhost:3000
 | **Link Thumbnails** | Paid | ❌ | ❌ | ❌ | **✅** |
 | **QR Codes** | ❌ | ❌ | ❌ | ❌ | **✅** |
 | **Link Scheduling** | Paid | ❌ | ❌ | ❌ | **✅** |
-| **Themes** | Paid | Limited | CSS only | Config | **✅ Full + Import/Export** |
+| **Themes** | Paid | Limited | CSS only | Config | **✅ Full Token System + Import/Export** |
 | **Custom CSS** | ❌ | ❌ | ✅ | ❌ | **✅** |
 | **Self-Hosted** | ❌ | ✅ | ✅ | ✅ | **✅** |
 | **Language** | Closed | PHP | HTML | Astro | **TypeScript** |
@@ -281,9 +281,19 @@ and stored in the database — no code changes needed.
 
 ## 🎨 Theme System
 
-5 themes are included out of the box (Midnight, Sunset, Ocean, Mono, Forest).
-Customize any of them from the admin panel — colors, fonts, backgrounds, animations.
-No code or config files needed.
+9 presets are included out of the box: **Aurora** (animated flagship), **Glassmorphism**, **Neon Cyberpunk**, **Editorial Paper**, **Terminal Mono**, **Pastel Soft**, **Brutalist**, **Retro Sunset**, and **Minimal Light**.
+
+The theme engine uses a CSS custom property (`--lb-*`) token system — every color, radius, shadow, and font is a token consumed by the public page components. The customizer gives you full control over:
+
+- **Background** — 8 types (solid, gradient, radial, mesh, aurora, animated gradient, image, pattern) with angle, overlay, and opacity controls
+- **Colors** — accent, secondary, text, muted text, card background, card border (hex or rgba)
+- **Typography** — 10 curated Google Fonts (Inter, Poppins, Playfair Display, JetBrains Mono, Space Grotesk, DM Sans, Lora, Bebas Neue, Sora, Outfit), font scale, weight, letter spacing
+- **Card style** — 6 link styles (pill, rounded, sharp, glass, outline, neon), hover effects, button size, corner radius, border width, shadow strength
+- **Layout** — container width, alignment (left/center/right), density (compact/normal/relaxed)
+- **Effects** — glow with custom color, glass blur, noise texture, reveal animation
+- **Duplicate** — clone any theme (preset or custom) as a new editable copy
+
+All changes apply with zero client JavaScript — the public page remains 100% server-rendered.
 
 ## 🤝 Contributing
 

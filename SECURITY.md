@@ -50,7 +50,7 @@ LinkBreeze implements the following security practices:
 - **SVG uploads blocked**: SVG files are no longer accepted as uploads. The uploads serving route also sends `Content-Security-Policy: default-src 'none'` and `X-Content-Type-Options: nosniff` headers as defense-in-depth.
 - **Privacy-first analytics**: No raw IP storage — visitor hashes use SHA-256 with a daily-rotating salt
 
-## Known Limitations (v1.0.2)
+## Known Limitations (v1.1.0)
 
 The following are NOT yet implemented. If you need these, track the corresponding
 issue or contribute:

@@ -19,7 +19,12 @@ import { EmbedWidget } from "@/components/public/EmbedWidget";
 import { EmailCapture } from "@/components/public/EmailCapture";
 import { SocialIcons } from "@/components/public/SocialIcons";
 import { AuroraBackground } from "@/components/aurora/AuroraBackground";
-import { resolveBackground, isAnimatedAurora } from "@/lib/theme-background";
+import {
+  resolveBackground,
+  isAnimatedAurora,
+  buildThemeStyleBlock,
+  type ThemeInput,
+} from "@/lib/theme-tokens";
 
 export const revalidate = 60;
 
@@ -113,12 +118,13 @@ export default async function PublicPage({ params }: PageProps) {
     socialLinks = [];
   }
 
-  const textColor = theme?.textColor || "#eceafe";
-  const primaryColor = theme?.primaryColor || "#533fd6";
-  const useAurora = isAnimatedAurora(theme ?? {});
-  const background = resolveBackground(theme ?? {});
+  const themeInput: ThemeInput = theme ?? {};
 
-  const fontFamily = theme?.fontFamily || "Inter, system-ui, sans-serif";
+  const useAurora = isAnimatedAurora(themeInput);
+  const background = resolveBackground(themeInput);
+
+  // Build the token-based style block (CSS custom properties).
+  const themeStyleBlock = buildThemeStyleBlock(themeInput);
 
   // JSON-LD structured data.
   const allSettings = await getSettings();
@@ -148,24 +154,36 @@ export default async function PublicPage({ params }: PageProps) {
       {allSettings.customCss ? (
         <style dangerouslySetInnerHTML={{ __html: allSettings.customCss }} />
       ) : null}
+      {/* Inject theme tokens as CSS custom properties on :root */}
+      <style dangerouslySetInnerHTML={{ __html: themeStyleBlock }} />
       <main
-        style={
-          useAurora
-            ? { color: textColor, fontFamily, minHeight: "100vh", boxSizing: "border-box" }
-            : { background, color: textColor, fontFamily, minHeight: "100vh", boxSizing: "border-box" }
-        }
-        className="relative flex flex-col items-center w-full"
+        style={{
+          background: useAurora ? undefined : background,
+          color: "var(--lb-text)",
+          fontFamily: "var(--lb-font)",
+          minHeight: "100vh",
+          boxSizing: "border-box",
+        }}
+        className="relative flex w-full flex-col"
+        data-alignment={themeInput.alignment || "center"}
       >
-      <div className="w-full max-w-xl px-5 py-12 sm:py-16">
-        <ProfileHeader profile={profile} textColor={textColor} />
+      <div
+        className="lb-container w-full px-5 py-12 sm:py-16"
+        style={{
+          maxWidth: "var(--lb-container-width)",
+          margin: "0 auto",
+          textAlign: "var(--lb-alignment)" as React.CSSProperties["textAlign"],
+        }}
+      >
+        <ProfileHeader profile={profile} />
 
         {socialLinks.length > 0 ? (
-          <div className="mt-6 mb-8">
-            <SocialIcons socialLinks={socialLinks} textColor={textColor} />
+          <div className="mb-8 mt-6">
+            <SocialIcons socialLinks={socialLinks} />
           </div>
         ) : null}
 
-        <div className="mt-6">
+        <div style={{ marginTop: "var(--lb-spacing)" }}>
           {activeLinks.length > 0 ? (
             activeLinks.map((link, i) =>
               link.type === "embed" ? (
@@ -182,19 +200,14 @@ export default async function PublicPage({ params }: PageProps) {
                   link={link}
                   profile={profile}
                   index={i}
-                  theme={{
-                    textColor,
-                    primaryColor,
-                    linkStyle: theme?.linkStyle || "glass",
-                    animationType: theme?.animationType || "lift",
-                  }}
+                  theme={themeInput}
                 />
               ),
             )
           ) : (
             <p
               className="text-center text-sm opacity-60"
-              style={{ color: textColor }}
+              style={{ color: "var(--lb-text-muted)" }}
             >
               No links yet.
             </p>
@@ -202,13 +215,13 @@ export default async function PublicPage({ params }: PageProps) {
         </div>
 
         {allSettings.emailCapture === "true" ? (
-          <EmailCapture accentColor={primaryColor} textColor={textColor} />
+          <EmailCapture />
         ) : null}
 
         {allSettings.footerText ? (
           <footer
             className="mt-10 text-center text-xs opacity-50"
-            style={{ color: textColor }}
+            style={{ color: "var(--lb-text-muted)" }}
           >
             {allSettings.footerText}
           </footer>

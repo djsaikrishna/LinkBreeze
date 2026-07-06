@@ -40,17 +40,19 @@ describe("buildLinkCardHtml", () => {
     expect(mail).not.toContain('target="_blank"');
   });
 
-  it("adds the highlight dot + primary border only when highlighted", () => {
+  it("adds the highlight dot + accent border only when highlighted", () => {
     const plain = buildLinkCardHtml(baseLink, profile, theme, 0);
-    expect(plain).not.toContain("border-radius:9999px;width:6px");
+    expect(plain).not.toContain("background:var(--lb-accent);margin-right:8px");
     const hi = buildLinkCardHtml(
       { ...baseLink, isHighlighted: true } as LinkRow,
       profile,
       theme,
       0,
     );
-    expect(hi).toContain("background:#533fd6"); // highlight dot
-    expect(hi).toContain("2px solid #533fd6"); // highlighted border
+    // Highlight dot uses the accent token
+    expect(hi).toContain("background:var(--lb-accent)");
+    // Static border for highlighted card uses accent, not card-border
+    expect(hi).toContain("solid var(--lb-accent)");
   });
 
   it("includes a per-card stagger delay", () => {
@@ -61,5 +63,18 @@ describe("buildLinkCardHtml", () => {
   it("omits the reveal animation when animationType is none", () => {
     const html = buildLinkCardHtml(baseLink, profile, { ...theme, animationType: "none" }, 2);
     expect(html).not.toContain("aurora-rise");
+  });
+
+  it("uses CSS custom properties instead of hardcoded colors", () => {
+    const html = buildLinkCardHtml(baseLink, profile, theme, 0);
+    expect(html).toContain("var(--lb-text)");
+    expect(html).toContain("var(--lb-accent)");
+    expect(html).toContain("var(--lb-card-bg)");
+    expect(html).toContain("var(--lb-card-radius)");
+  });
+
+  it("applies neon styling when linkStyle is neon", () => {
+    const html = buildLinkCardHtml(baseLink, profile, { ...theme, linkStyle: "neon" }, 0);
+    expect(html).toContain("var(--lb-accent)");
   });
 });

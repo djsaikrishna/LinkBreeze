@@ -47,14 +47,53 @@ export const links = sqliteTable("links", {
 export const themes = sqliteTable("themes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  backgroundType: text("background_type").notNull().default("gradient"), // solid, gradient, pattern
+
+  // Background
+  backgroundType: text("background_type").notNull().default("gradient"), // solid, gradient, radial, mesh, image, pattern, aurora, animatedGradient
   backgroundValue: text("background_value").notNull().default("#1a1a2e,#16213e"),
-  fontFamily: text("font_family").notNull().default("Inter"),
+  backgroundAngle: text("background_angle").notNull().default("160deg"),
+  backgroundImageUrl: text("background_image_url").notNull().default(""),
+  overlayColor: text("overlay_color").notNull().default("#000000"),
+  overlayOpacity: text("overlay_opacity").notNull().default("0"),
+
+  // Colors
   primaryColor: text("primary_color").notNull().default("#0f3460"),
+  secondaryColor: text("secondary_color").notNull().default("#a78bfa"),
+  cardBackground: text("card_background").notNull().default("rgba(255,255,255,0.06)"),
+  cardBorderColor: text("card_border_color").notNull().default("rgba(167,139,250,0.16)"),
   textColor: text("text_color").notNull().default("#eaeaea"),
-  linkStyle: text("link_style").notNull().default("rounded"), // rounded, sharp, glass
+  mutedTextColor: text("muted_text_color").notNull().default("rgba(234,234,234,0.7)"),
+  mode: text("mode").notNull().default("dark"), // dark, light, auto
+
+  // Typography
+  fontFamily: text("font_family").notNull().default("inter"),
+  fontScale: text("font_scale").notNull().default("md"), // sm, md, lg
+  fontWeight: text("font_weight").notNull().default("600"),
+  letterSpacing: text("letter_spacing").notNull().default("0"),
+
+  // Card
+  linkStyle: text("link_style").notNull().default("glass"), // rounded, sharp, glass, pill, outline, neon
   animationType: text("animation_type").notNull().default("lift"), // lift, scale, none
+  radius: text("radius").notNull().default("auto"),
+  buttonSize: text("button_size").notNull().default("md"), // sm, md, lg
+  borderWidth: text("border_width").notNull().default("1px"),
+  shadowStrength: text("shadow_strength").notNull().default("medium"), // none, subtle, medium, strong
+  hoverEffect: text("hover_effect").notNull().default("lift"), // lift, scale, glow, none
+
+  // Layout
+  containerWidth: text("container_width").notNull().default("standard"), // narrow, standard, wide
+  alignment: text("alignment").notNull().default("center"), // left, center, right
+  density: text("density").notNull().default("comfortable"), // compact, comfortable, spacious
+
+  // Effects
+  glow: text("glow").notNull().default("false"),
+  glowColor: text("glow_color").notNull().default("#a78bfa"),
+  blur: text("blur").notNull().default("8px"),
+  noise: text("noise").notNull().default("false"),
+
+  // Meta
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(false),
+  isPreset: integer("is_preset", { mode: "boolean" }).notNull().default(false),
 });
 
 // ─── Analytics ────────────────────────────────────────

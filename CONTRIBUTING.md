@@ -68,16 +68,41 @@ panel's theme customizer. There is no JSON file system — themes are live confi
 
 ### Theme Properties
 
+Themes use a CSS custom property (`--lb-*`) token system. The full property set:
+
 | Property | Type | Options |
 |----------|------|---------|
 | `name` | string | Display name |
-| `backgroundType` | string | `solid`, `gradient`, `pattern` |
-| `backgroundValue` | string | Color hex, gradient `#color1,#color2`, or pattern name |
-| `fontFamily` | string | `Inter`, `Geist`, `Poppins`, `Space Grotesk` |
-| `primaryColor` | string | Hex color for accents |
-| `textColor` | string | Hex color for text |
-| `linkStyle` | string | `rounded`, `sharp`, `glass` |
-| `animationType` | string | `lift`, `scale`, `none` |
+| `backgroundType` | string | `solid`, `gradient`, `radial`, `mesh`, `aurora`, `animatedGradient`, `image`, `pattern` |
+| `backgroundValue` | string | Comma-separated colors, or image URL for `image` type |
+| `backgroundAngle` | string | `90deg`, `135deg`, `160deg`, `180deg`, `radial` |
+| `overlayColor` | string | Hex color for image overlay |
+| `overlayOpacity` | string | `0`–`100` (percentage) |
+| `primaryColor` | string | Hex/rgba for accent |
+| `secondaryColor` | string | Hex/rgba for secondary accent |
+| `textColor` | string | Hex/rgba for primary text |
+| `mutedTextColor` | string | Hex/rgba for muted text |
+| `cardBackground` | string | Hex/rgba for card background |
+| `cardBorderColor` | string | Hex/rgba for card border |
+| `fontFamily` | string | `inter`, `poppins`, `playfair`, `jetbrains`, `space-grotesk`, `dm-sans`, `lora`, `bebas`, `sora`, `outfit` |
+| `fontScale` | string | `80`–`150` (percentage) |
+| `fontWeight` | string | `300`, `400`, `500`, `600`, `700` |
+| `letterSpacing` | string | `-2` to `5` |
+| `linkStyle` | string | `pill`, `rounded`, `sharp`, `glass`, `outline`, `neon` |
+| `hoverEffect` | string | `lift`, `scale`, `glow`, `none` |
+| `animationType` | string | `lift`, `scale`, `none` (reveal animation) |
+| `radius` | string | `auto`, `0px`, `8px`, `12px`, `16px`, `9999px` |
+| `buttonSize` | string | `sm`, `md`, `lg` |
+| `borderWidth` | string | `0px`, `1px`, `2px`, `3px` |
+| `shadowStrength` | string | `none`, `subtle`, `soft`, `medium`, `strong` |
+| `containerWidth` | string | `480px`, `540px`, `640px` |
+| `alignment` | string | `left`, `center`, `right` |
+| `density` | string | `compact`, `normal`, `relaxed` |
+| `glow` | string | `true`, `false` |
+| `glowColor` | string | Hex color for glow effect |
+| `blur` | string | `0px`, `8px`, `12px`, `20px` |
+| `noise` | string | `true`, `false` |
+| `mode` | string | `light`, `dark` |
 
 ## 🐛 Reporting Bugs
 

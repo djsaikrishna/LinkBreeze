@@ -10,24 +10,49 @@ assignees: []
 
 What's it called?
 
-## How to get these values
+## How to export your theme
 
 1. Run LinkBreeze locally and open **Theme** (`/theme`) in the admin panel
-2. Customize your theme using the visual editor
-3. Copy the values from the editor into the JSON below
+2. Customize your theme using the visual editor (background, colors, typography, card style, layout, effects)
+3. Click the **Export** button next to your theme to download the JSON
+4. Paste the full JSON below
 
 ## Theme JSON
 
 ```json
 {
+  "version": 1,
+  "app": "linkbreeze",
+  "kind": "theme",
   "name": "",
   "backgroundType": "",
   "backgroundValue": "",
-  "fontFamily": "",
+  "backgroundAngle": "",
   "primaryColor": "",
+  "secondaryColor": "",
   "textColor": "",
+  "mutedTextColor": "",
+  "cardBackground": "",
+  "cardBorderColor": "",
+  "fontFamily": "",
+  "fontScale": "",
+  "fontWeight": "",
+  "letterSpacing": "",
   "linkStyle": "",
-  "animationType": ""
+  "hoverEffect": "",
+  "animationType": "",
+  "radius": "",
+  "buttonSize": "",
+  "borderWidth": "",
+  "shadowStrength": "",
+  "containerWidth": "",
+  "alignment": "",
+  "density": "",
+  "glow": "",
+  "glowColor": "",
+  "blur": "",
+  "noise": "",
+  "mode": ""
 }
 ```
 

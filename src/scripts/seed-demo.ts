@@ -82,18 +82,25 @@ async function seed() {
   }
   console.log(`✓ ${links.length} links created`);
 
-  // ─── Themes ────────────────────────────────────
-  const themes = [
-    { name: "Midnight", backgroundType: "aurora", backgroundValue: "#0f0c29,#1a1a2e,#16213e", fontFamily: "Inter", primaryColor: "#a78bfa", textColor: "#eaeaea", linkStyle: "glass", animationType: "lift", isActive: true },
-    { name: "Sunset", backgroundType: "gradient", backgroundValue: "#ff6a00,#ee0979", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fff7f0", linkStyle: "rounded", animationType: "scale", isActive: false },
-    { name: "Ocean", backgroundType: "gradient", backgroundValue: "#2193b0,#6dd5ed", fontFamily: "Inter", primaryColor: "#003344", textColor: "#f0fbff", linkStyle: "glass", animationType: "lift", isActive: false },
-    { name: "Mono", backgroundType: "solid", backgroundValue: "#0a0a0a", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fafafa", linkStyle: "rounded", animationType: "none", isActive: false },
-    { name: "Forest", backgroundType: "gradient", backgroundValue: "#134e5e,#71b280", fontFamily: "Inter", primaryColor: "#0c2b33", textColor: "#f1fff4", linkStyle: "glass", animationType: "lift", isActive: false },
-  ];
-  for (const theme of themes) {
-    db.insert(schema.themes).values(theme).run();
-  }
-  console.log(`✓ ${themes.length} themes created`);
+  // ─── Themes (seed Aurora preset as active) ─────
+  const auroraPreset = {
+    name: "Aurora",
+    backgroundType: "aurora",
+    backgroundValue: "#0a0820",
+    fontFamily: "inter",
+    primaryColor: "#533fd6",
+    secondaryColor: "#a78bfa",
+    cardBackground: "rgba(20,17,46,0.55)",
+    cardBorderColor: "rgba(167,139,250,0.18)",
+    textColor: "#eceafe",
+    mutedTextColor: "#a39ec9",
+    linkStyle: "glass",
+    animationType: "lift",
+    isActive: true,
+    isPreset: true,
+  };
+  db.insert(schema.themes).values(auroraPreset).run();
+  console.log("✓ Aurora theme created");
 
   // ─── Fake analytics (last 7 days) ──────────────
   const referrers = [null, "https://instagram.com", "https://tiktok.com", "https://youtube.com", null, "https://google.com", null];
