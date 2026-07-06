@@ -9,25 +9,26 @@ interface EmbedWidgetProps {
 
 /**
  * Converts a YouTube, Spotify, SoundCloud, Vimeo, or Bandcamp URL into an
- * embeddable iframe. Returns null if the URL doesn't match a known provider
- * (the link will still show as a regular card via the fallback in the page).
+ * embeddable iframe. Returns null if the URL doesn't match a known provider.
  *
  * Server Component — no client JS. The iframe loads lazily.
  */
-function buildEmbedUrl(url: string): { src: string; aspect: string } | null {
+function buildEmbedUrl(url: string): { src: string; aspect: string; provider: string; height: number } | null {
   try {
     const u = new URL(url);
     const host = u.hostname.replace(/^www\./, "");
 
     // YouTube — watch?v=, youtu.be/, /embed/, /shorts/
-    if (host === "youtube.com" || host === "m.youtube.com") {
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
       const videoId =
         u.searchParams.get("v") ||
         u.pathname.split("/").filter(Boolean).slice(-1)[0];
       if (videoId) {
         return {
-          src: `https://www.youtube.com/embed/${videoId}`,
+          src: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`,
           aspect: "16 / 9",
+          provider: "youtube",
+          height: 0,
         };
       }
     }
@@ -35,17 +36,25 @@ function buildEmbedUrl(url: string): { src: string; aspect: string } | null {
       const videoId = u.pathname.split("/").filter(Boolean)[0];
       if (videoId) {
         return {
-          src: `https://www.youtube.com/embed/${videoId}`,
+          src: `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`,
           aspect: "16 / 9",
+          provider: "youtube",
+          height: 0,
         };
       }
     }
 
     // Spotify — track, episode, playlist, album
+    // Handles both regular URLs (/playlist/xxx) and embed URLs (/embed/playlist/xxx)
+    // Uses fixed height (not 16:9) — Spotify's player is 152px tall regardless of width.
     if (host === "spotify.com" || host === "open.spotify.com") {
+      // Strip /embed/ prefix if the user pasted an embed URL directly
+      const cleanPath = u.pathname.replace(/^\/embed/, "");
       return {
-        src: `https://open.spotify.com/embed${u.pathname}`,
-        aspect: "16 / 9",
+        src: `https://open.spotify.com/embed${cleanPath}`,
+        aspect: "auto",
+        provider: "spotify",
+        height: 152,
       };
     }
 
@@ -56,6 +65,8 @@ function buildEmbedUrl(url: string): { src: string; aspect: string } | null {
         return {
           src: `https://player.vimeo.com/video/${videoId}`,
           aspect: "16 / 9",
+          provider: "vimeo",
+          height: 0,
         };
       }
     }
@@ -65,6 +76,8 @@ function buildEmbedUrl(url: string): { src: string; aspect: string } | null {
       return {
         src: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false`,
         aspect: "auto",
+        provider: "soundcloud",
+        height: 166,
       };
     }
 
@@ -73,6 +86,8 @@ function buildEmbedUrl(url: string): { src: string; aspect: string } | null {
       return {
         src: `https://bandcamp.com/EmbeddedPlayer/album=${u.searchParams.get("album_id") || ""}/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/`,
         aspect: "auto",
+        provider: "bandcamp",
+        height: 350,
       };
     }
 
@@ -94,12 +109,22 @@ export function EmbedWidget({ url, title, index, animationType }: EmbedWidgetPro
 
   const isFixed = embed.aspect !== "auto";
 
+  // YouTube and Spotify show their own title in the player UI.
+  // Only render a caption for providers that don't (SoundCloud, Bandcamp).
+  const showCaption = embed.provider === "soundcloud" || embed.provider === "bandcamp";
+
   return (
     <div
-      className="mb-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"
+      className="overflow-hidden"
       style={{
         animation: reveal || undefined,
         animationDelay: delay,
+        background: "var(--lb-card-bg)",
+        border: "var(--lb-border-width) solid var(--lb-card-border)",
+        borderRadius: "var(--lb-card-radius)",
+        backdropFilter: "blur(var(--lb-blur))",
+        WebkitBackdropFilter: "blur(var(--lb-blur))",
+        margin: "0 0 var(--lb-spacing)",
       }}
     >
       {isFixed ? (
@@ -126,10 +151,22 @@ export function EmbedWidget({ url, title, index, animationType }: EmbedWidgetPro
           title={title}
           loading="lazy"
           allow="autoplay"
-          style={{ width: "100%", height: "166px", border: 0 }}
+          style={{ width: "100%", height: `${embed.height}px`, border: 0 }}
         />
       )}
-      <p className="px-4 py-2 text-xs opacity-60">{title}</p>
+      {showCaption ? (
+        <p
+          style={{
+            padding: "var(--lb-btn-padding-y) var(--lb-btn-padding-x)",
+            margin: 0,
+            fontSize: "calc(var(--lb-font-size) - 1px)",
+            opacity: 0.7,
+            color: "var(--lb-text)",
+          }}
+        >
+          {title}
+        </p>
+      ) : null}
     </div>
   );
 }

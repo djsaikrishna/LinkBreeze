@@ -71,21 +71,58 @@ export function buildLinkCardHtml(
 
   const clickHandler = `navigator.sendBeacon('/api/track', JSON.stringify({type:'click',linkId:${link.id}}))`;
 
-  // Thumbnail rendered at the top of the card (inside the <a>) when set.
-  const image = link.imageUrl
-    ? `<img src="${esc(link.imageUrl)}" alt="${title}" loading="lazy" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover;border-radius:var(--lb-card-radius);margin:0 0 10px;flex-basis:100%" />`
+  const imageUrl = link.imageUrl ?? "";
+  const hasImage = !!imageUrl;
+
+  // Thumbnail rendered as a full-bleed image at the top of the card.
+  // The card's overflow:hidden clips it to the card's border-radius.
+  const image = hasImage
+    ? `<img src="${esc(imageUrl)}" alt="" loading="lazy" style="display:block;width:100%;height:auto;max-height:220px;object-fit:cover" />`
     : "";
+
+  // Thumbnail cards need overflow:hidden so the image clips to the card radius.
+  const overflow = hasImage ? `overflow:hidden;` : "";
 
   // Backdrop blur only for glass / neon styles
   const backdropBlur = isGlass || isNeon
     ? `backdrop-filter:blur(var(--lb-blur));-webkit-backdrop-filter:blur(var(--lb-blur));`
     : "";
 
+  // Content row (title + description + arrow) — always a flex row.
+  const contentRow = `<div style="display:flex;align-items:center;padding:var(--lb-btn-padding-y) var(--lb-btn-padding-x)">
+    <span style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <span style="display:flex;align-items:center;font-weight:var(--lb-font-weight);font-size:calc(var(--lb-font-size) + 1px);letter-spacing:var(--lb-letter-spacing)">${highlightDot}${title}</span>
+      ${description}
+    </span>
+    <span aria-hidden="true" style="margin-left:10px;opacity:.6;font-size:18px;color:var(--lb-accent)">&#8599;</span>
+  </div>`;
+
+  // Layout differs: cards with thumbnail use block layout (image on top,
+  // content row below). Cards without thumbnail use flex directly on the <a>.
+  if (hasImage) {
+    return `<a
+  href="${href}"${targetAttr}
+  onclick="${clickHandler}"
+  style="
+    display:block;text-decoration:none;width:100%;box-sizing:border-box;
+    margin:0 0 var(--lb-spacing);
+    background:var(--lb-card-bg);border:${border};border-radius:var(--lb-card-radius);
+    color:var(--lb-text);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    ${backdropBlur}${overflow}${reveal}
+  "
+  onmouseover="this.style.transform='${hoverTransform}';this.style.boxShadow='${hoverShadow}';this.style.borderColor='var(--lb-accent)'"
+  onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='${isNeon ? "var(--lb-accent)" : "var(--lb-card-border)"}'"
+>
+  ${image}
+  ${contentRow}
+</a>`;
+  }
+
   return `<a
   href="${href}"${targetAttr}
   onclick="${clickHandler}"
   style="
-    display:flex;flex-wrap:wrap;align-items:center;text-decoration:none;width:100%;box-sizing:border-box;
+    display:flex;align-items:center;text-decoration:none;width:100%;box-sizing:border-box;
     padding:var(--lb-btn-padding-y) var(--lb-btn-padding-x);margin:0 0 var(--lb-spacing);
     background:var(--lb-card-bg);border:${border};border-radius:var(--lb-card-radius);
     color:var(--lb-text);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
@@ -94,7 +131,6 @@ export function buildLinkCardHtml(
   onmouseover="this.style.transform='${hoverTransform}';this.style.boxShadow='${hoverShadow}';this.style.borderColor='var(--lb-accent)'"
   onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='${isNeon ? "var(--lb-accent)" : "var(--lb-card-border)"}'"
 >
-  ${image}
   <span style="display:flex;flex-direction:column;flex:1;min-width:0">
     <span style="display:flex;align-items:center;font-weight:var(--lb-font-weight);font-size:calc(var(--lb-font-size) + 1px);letter-spacing:var(--lb-letter-spacing)">${highlightDot}${title}</span>
     ${description}

@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Atomic click tracking** — `recordClick()` now wraps the analytics insert and the `clicksCount` increment in a single `db.transaction()`. Previously these were two separate statements that could drift out of sync if the second failed, leaving the denormalized count permanently wrong.
 - **JSON-LD XSS hardening** — The structured data `<script>` tag now escapes `<` characters (`\u003c`) in the `JSON.stringify` output, preventing profile text fields (displayName, bio) from breaking out of the script context.
+- **Embed widget rendering** — Spotify embeds now use a fixed 152px height (matching Spotify's native player) instead of a bloated 16:9 aspect ratio container that left empty space. YouTube embeds use `youtube-nocookie.com` with `rel=0` and `modestbranding=1` for a cleaner, privacy-respecting player. Redundant title captions removed for YouTube/Spotify (they show their own title). Fixed Spotify double `/embed/` path bug that caused 404s.
+- **Link thumbnail layout** — Cards with thumbnail images now use block layout (image on top, content row below) instead of `flex-wrap`, which was shrinking the image and crushing the title text between the image and the card's right border.
 
 ### Changed
 
