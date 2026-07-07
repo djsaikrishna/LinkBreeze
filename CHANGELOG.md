@@ -5,6 +5,18 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-07
+
+### Fixed
+
+- **Fresh-deploy crash (Next.js error 1654975601)** — On a fresh `docker compose` deploy, the SQLite database was created empty with no tables because migrations never ran. The first query threw `no such table: settings`, surfacing as a generic "server error" page with code 1654975601 on every reload. Migrations now run automatically on server startup via a Next.js instrumentation hook (`src/instrumentation.ts`). The setup wizard appears on first launch as documented. Fixes #34.
+- **Healthcheck false-positive** — The `/api/health` endpoint returned 200 without touching the database, so a broken instance (missing tables, corrupt DB) still reported "healthy". The health route now probes the DB with `SELECT 1` and returns 503 on failure, so the Docker healthcheck reflects real readiness.
+
+### Changed
+
+- **Migration files explicitly bundled** — Added `outputFileTracingIncludes` to `next.config.ts` to guarantee Drizzle migration `.sql` files and `meta/_journal.json` are included in the standalone build output (previously worked by accident; now explicit).
+- **`db:migrate` script** — Added `npm run db:migrate` (`drizzle-kit migrate`) to `package.json` for manual migration in dev/CI. Docker deployments auto-migrate on boot and don't need this.
+
 ## [1.1.0] - 2026-07-06
 
 ### Added

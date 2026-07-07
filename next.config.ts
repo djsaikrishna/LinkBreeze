@@ -14,6 +14,15 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
 
+  // Force the Drizzle migration files (.sql + meta/_journal.json) to be bundled
+  // into the standalone server output. They're read at runtime by the
+  // auto-migrate step in src/instrumentation.ts; without this, file tracing may
+  // or may not include them, which would silently break migrations on fresh
+  // deploys.
+  outputFileTracingIncludes: {
+    "/": ["./src/db/migrations/**/*"],
+  },
+
   // Allow Server Actions from external IPs during dev (Tailscale, LAN, etc.)
   // Set DEV_ORIGINS="http://100.x.x.x:3000,http://192.168.x.x:3000" in .env
   allowedDevOrigins: process.env.DEV_ORIGINS?.split(",").map((s) => s.trim()) ?? [],

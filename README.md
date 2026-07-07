@@ -21,7 +21,9 @@
 > **Stop paying $15/mo for Linktree.** LinkBreeze gives you links, analytics,
 > QR codes, themes, and a real admin panel — free, forever, in one Docker command.
 
-**[🔗 Live Demo](https://linkbreeze-demo.omnirise.dev/alex)** — see it in action (read-only).
+**[🔗 Live Demo](https://linkbreeze-demo.omnirise.dev/alex)** — see the public page in action (read-only).
+
+**[🔐 Demo Dashboard](https://linkbreeze-demo.omnirise.dev/login)** — log in with `demo` / `demo1234` to explore the admin panel.
 
 ## ✨ Features
 
@@ -65,6 +67,9 @@ docker run -d `
 ```
 
 Then open http://localhost:3000 — the setup wizard takes under 30 seconds.
+
+> **Database migrations run automatically** on container startup — no manual
+> `drizzle-kit migrate` needed for Docker deployments.
 
 > **First time?** Make sure Docker Desktop (Windows/Mac) or the Docker daemon
 > (Linux) is running before you execute the command.
@@ -130,7 +135,7 @@ cp .env.example .env
 # Edit .env to set your SECRET_KEY and DATABASE_PATH if needed
 
 # Run database migrations
-npx drizzle-kit migrate
+npm run db:migrate
 
 # Start development server
 npm run dev
