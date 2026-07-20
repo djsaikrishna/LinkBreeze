@@ -443,15 +443,29 @@ export function resolveBackground(theme: ThemeBackgroundInput): string {
 
     case "image":
       if (theme.backgroundImageUrl) {
-        const overlay =
-          theme.overlayColor && theme.overlayOpacity
-            ? `${theme.overlayColor}${Math.round(parseFloat(theme.overlayOpacity) * 255)
-                .toString(16)
-                .padStart(2, "0")},`
-            : "";
-        return overlay
-          ? `linear-gradient(${overlay} ${theme.overlayColor}), url('${theme.backgroundImageUrl}')`
-          : `url('${theme.backgroundImageUrl}')`;
+        // Render the overlay as a uniform translucent layer over the image.
+        // opacity "0" (or missing) = no overlay, just the image.
+        const opacityNum = theme.overlayOpacity
+          ? parseFloat(theme.overlayOpacity)
+          : NaN;
+        const hasOverlay =
+          theme.overlayColor &&
+          theme.overlayOpacity &&
+          theme.overlayOpacity.trim() !== "" &&
+          !Number.isNaN(opacityNum) &&
+          opacityNum > 0;
+
+        if (hasOverlay && theme.overlayColor) {
+          // Encode opacity as 2-digit alpha hex appended to the overlay color,
+          // then repeat the SAME color at both gradient stops so the layer is
+          // uniform (not a gradient from transparent-ish to opaque).
+          const alpha = Math.round(opacityNum * 255)
+            .toString(16)
+            .padStart(2, "0");
+          const overlayLayer = `${theme.overlayColor}${alpha}`;
+          return `linear-gradient(${overlayLayer}, ${overlayLayer}), url('${theme.backgroundImageUrl}')`;
+        }
+        return `url('${theme.backgroundImageUrl}')`;
       }
       return parts[0];
 

@@ -63,7 +63,7 @@ export const themes = sqliteTable("themes", {
   cardBorderColor: text("card_border_color").notNull().default("rgba(167,139,250,0.16)"),
   textColor: text("text_color").notNull().default("#eaeaea"),
   mutedTextColor: text("muted_text_color").notNull().default("rgba(234,234,234,0.7)"),
-  mode: text("mode").notNull().default("dark"), // dark, light, auto
+  mode: text("mode").notNull().default("dark"), // dark, light (UI + Zod only accept these two)
 
   // Typography
   fontFamily: text("font_family").notNull().default("inter"),
