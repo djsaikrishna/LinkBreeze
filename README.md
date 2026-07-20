@@ -37,7 +37,7 @@
 - **🎨 Themes** — 9 built-in presets (Aurora, Glassmorphism, Neon Cyberpunk, Editorial Paper, Terminal Mono, Pastel Soft, Brutalist, Retro Sunset, Minimal Light) + full customizer with CSS token system (colors, 10 fonts, 8 background types, 6 card styles, layout controls, effects) + theme duplicate/import/export
 - **✏️ Custom CSS** — Fine-tune your page with raw CSS injection
 - **📧 Email Capture** — Collect subscriber emails on your public page, export to CSV
-- **📱 Mobile-First** — Gorgeous on every screen. Loads in under 300ms. Zero client JavaScript.
+- **📱 Mobile-First** — Gorgeous on every screen. Loads in under 300ms. Zero client-side JS bundles.
 - **🎯 QR Codes** — Auto-generated for your page. Download as SVG or PNG.
 - **🔒 Self-Hosted** — Your data, your server. No tracking. No ads. No subscription.
 - **🐳 One-Command Deploy** — Docker compose and you're live
@@ -299,7 +299,7 @@ The theme engine uses a CSS custom property (`--lb-*`) token system — every co
 - **Effects** — glow with custom color, glass blur, noise texture, reveal animation
 - **Duplicate** — clone any theme (preset or custom) as a new editable copy
 
-All changes apply with zero client JavaScript — the public page remains 100% server-rendered.
+All changes apply with zero client-side JS bundles — the public page ships no React runtime and renders as pure server-side HTML. (mailto/tel/social links use a tiny inline `onclick` beacon for best-effort click tracking; http/https links use the JS-free `/go/:id` redirect.)
 
 ## 🤝 Contributing
 

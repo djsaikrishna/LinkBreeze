@@ -31,7 +31,7 @@ Visit `http://localhost:3000` — you'll see the setup wizard on first run.
 2. **Make changes.** Follow existing code patterns:
    - All database access goes through `src/server/queries/` — never call Drizzle directly from components
    - All inputs validated with Zod
-   - Server Components for public-facing pages (zero client JS)
+   - Server Components for public-facing pages (zero client-side JS bundles — no React runtime ships to the public page)
    - Client Components only for admin dashboard (marked with `"use client"`)
 
 3. **Test your changes:**

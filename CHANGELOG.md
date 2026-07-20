@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Image background overlay rendered as a dark gradient instead of a translucent tint** — `resolveBackground()` for `backgroundType: "image"` built the overlay layer as `linear-gradient(#00000080, #000000)` — alpha encoded on the first stop only, second stop dropped the alpha entirely. The result was a near-opaque dark layer over the image instead of the intended uniform translucent tint. Additionally, `overlayOpacity: "0"` still rendered the broken gradient instead of skipping the overlay. Fixed: the overlay is now a uniform translucent layer (`#color+alpha` at both gradient stops), and opacity 0 or missing skips the overlay entirely. No preset used the image background type, so no existing theme was visually affected — the bug only hit user-created image-background themes.
 - **`mode` column comment claimed `auto` was supported** — The schema comment on `themes.mode` documented `dark, light, auto`, but the Zod validator, the admin UI select, and the resolver only handle `dark` and `light`. A value of `auto` would have triggered the same silent `safeParse` reject as the v1.1.2 density bug (entire save payload rejected, error swallowed client-side). Comment aligned to reality; no behavior change, no migration.
+- **Click-inflation attack on `/go/:id` (security)** — The JS-free click redirect endpoint had no rate limit, while the JS fallback (`/api/track`) was throttled at 60 req/min/IP. A bot could hammer `/go/:id` in a loop to inflate any link's `clicksCount` and raw `analyticsClicks` rows indefinitely — polluting both the admin dashboard and the export. Fixed: `/go/:id` now applies the same `rateLimit("go:<ip>", 60, 60_000)` check as `/api/track`. Rate-limited requests still redirect (real users never hit the limit), but the click is not recorded. This closes the integrity gap between the two click-tracking paths.
+- **"Zero client JavaScript" claim was inaccurate** — The README, CONTRIBUTING, ADR-0001, and CHANGELOG all claimed the public page ships "zero client JS", but `build-link-card.ts` emits an inline `onclick="navigator.sendBeacon(...)"` for non-http links (mailto, tel, sms). While no JS *bundle* ships (no React runtime), inline handlers are technically client-side JS. Claims softened to "zero client-side JS bundles" / "no React runtime" across all docs. The architecture is unchanged; only the marketing/technical claims were corrected to match reality.
 
 ### Added
 
@@ -267,5 +269,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Database**: SQLite via better-sqlite3 (WAL mode)
 - **ORM**: Drizzle ORM (type-safe, zero-overhead)
 - **UI**: shadcn/ui + Tailwind CSS 4
-- **Public page**: Zero client-side JavaScript — pure Server Components with inline `onclick`/`sendBeacon` for click tracking
+- **Public page**: No client-side JS bundles (no React runtime) — pure Server Components. http/https links use a JS-free `/go/:id` redirect for click tracking; mailto/tel links use a tiny inline `onclick` sendBeacon beacon.
 - **Performance**: <300ms FCP target, ISR with 60s revalidation

@@ -46,9 +46,9 @@ LinkBreeze implements the following security practices:
 - **CSRF protection**: Next.js 16 Server Actions verify the `Origin` header
   against the `Host` header on every non-GET submission. Cross-site form posts
   are rejected automatically by the framework — no manual CSRF token needed.
-- **Rate limiting**: Login endpoint (5 attempts/min per IP), analytics tracking endpoint (60 req/min per IP), QR generation endpoint (30 req/min per IP)
+- **Rate limiting**: Login endpoint (5 attempts/min per IP), analytics tracking endpoint (60 req/min per IP), click redirect endpoint `/go/:id` (60 req/min per IP), QR generation endpoint (30 req/min per IP)
 - **SVG uploads blocked**: SVG files are no longer accepted as uploads. The uploads serving route also sends `Content-Security-Policy: default-src 'none'` and `X-Content-Type-Options: nosniff` headers as defense-in-depth.
-- **Privacy-first analytics**: No raw IP storage — visitor hashes use SHA-256 with a daily-rotating salt
+- **Privacy-first analytics**: No raw IP storage — visitor hashes use SHA-256 (truncated to 64 bits) with a daily-rotating salt. The hash is one-way and rotates daily, so it cannot be reversed to recover IPs and cannot be used to track visitors across days. **Known trade-off**: visitors behind the same NAT (office, home, carrier-grade NAT) with identical user-agents produce the same hash within a day, which can undercount unique visitors in shared-network scenarios. This is an acceptable privacy/accuracy trade-off for a single-instance self-hosted deploy.
 
 ## Known Limitations (v1.1.0)
 

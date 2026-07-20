@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getVisitorHash } from "@/lib/visitor";
+import { rateLimit } from "@/lib/rate-limit";
 import { getLink, recordClick } from "@/server/queries";
 
 export const runtime = "nodejs";
@@ -43,16 +44,26 @@ export async function GET(
   }
 
   // Record the click — same visitor hash logic as /api/track.
+  // Rate-limited per IP to prevent click-inflation attacks (a bot
+  // hammering /go/:id to inflate a competitor's or victim's counts).
+  // Matches the throttle on /api/track: 60 events/min/IP.
   try {
     const h = await headers();
     const ip =
       (h.get("x-forwarded-for")?.split(",")[0] || "").trim() ||
       (h.get("x-real-ip") || "").toString() ||
       "0.0.0.0";
-    const userAgent = (h.get("user-agent") || "").toString();
-    const visitorHash = getVisitorHash(ip, userAgent);
-    const referrer = (h.get("referer") || h.get("referrer") || "").toString();
-    await recordClick(linkId, visitorHash, referrer || null);
+
+    const rl = rateLimit(`go:${ip}`, 60, 60_000);
+    if (rl.ok) {
+      const userAgent = (h.get("user-agent") || "").toString();
+      const visitorHash = getVisitorHash(ip, userAgent);
+      const referrer = (h.get("referer") || h.get("referrer") || "").toString();
+      await recordClick(linkId, visitorHash, referrer || null);
+    }
+    // If rate-limited, we still redirect the user to their destination —
+    // we just don't count the click. Real users never hit the limit;
+    // only bots/loops do.
   } catch (err) {
     // Don't block the redirect if analytics fails — the user should still
     // reach their destination.
