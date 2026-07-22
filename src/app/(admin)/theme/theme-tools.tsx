@@ -75,8 +75,9 @@ export function ThemeTools({ themes }: ThemeToolsProps) {
       <CardHeader>
         <CardTitle>Import &amp; export</CardTitle>
         <CardDescription>
-          Download a theme to back it up or share it, then re-import on any
-          LinkBreeze instance. Imported themes are added as inactive copies.
+          Download a theme as a .json file to back it up or share it, then
+          re-import on any LinkBreeze instance. Imported themes are added as
+          inactive copies.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -116,6 +117,9 @@ export function ThemeTools({ themes }: ThemeToolsProps) {
             <Upload className="size-4" />
             {busy ? "Importing…" : "Choose JSON file…"}
           </Button>
+          <p className="text-xs text-muted-foreground">
+            Select a theme .json file you previously exported from LinkBreeze.
+          </p>
         </div>
 
         {error ? (

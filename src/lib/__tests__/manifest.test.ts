@@ -26,7 +26,7 @@ describe("PWA manifest (public/site.webmanifest)", () => {
 
   it("has start_url and scope rooted at the app", () => {
     expect(typeof manifest.start_url).toBe("string");
-    expect(manifest.start_url.startsWith("/")).toBe(true);
+    expect((manifest.start_url as string).startsWith("/")).toBe(true);
     expect(manifest.scope).toBe("/");
   });
 
